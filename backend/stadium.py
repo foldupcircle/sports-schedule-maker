@@ -1,5 +1,6 @@
+from typing import Tuple
 
-# TODO
 class Stadium():
-    def __init__(self) -> None:
-        pass
+    def __init__(self, name: str, location: Tuple[float, float]) -> None:
+        self.name = name
+        self.location = location
