@@ -3,16 +3,17 @@ from typing import List, Optional
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 
-from ai_models import GPT4
+from ai_models import GPT3, GPT4
 
 constraint_prompt = ChatPromptTemplate.from_template(\
-    "You are an agent with the sole purpose of creating constriants for sports league schedule making.\
+    "You are an agent with the sole purpose of creating matchups for sports league schedule making.\
     You must generate two lists. One for the match-ups that MUST happen. And one for the match-ups that MUST NOT happen.\
     For each matchup you MUST give the two teams involved in that matchup and the stadium it should be played at.\
     The two teams MUST be different.\
     If the stadium doesn't matter, return an empty string for the stadium.\
     The stadium each game is played at MUST match a home field of one of the teams listed.\
-    Teams and corresponding stadiums: {teams}\
+    Teams and corresponding stadiums and divisions: {teams}\
+    Here are the constraints: {constraints}\
     "
 )
 
@@ -23,5 +24,6 @@ class Matchup(BaseModel):
 
 class ScheduleData(BaseModel):
     required_matchups: List[Matchup]
+    prohibited_matchups: List[Matchup]
 
 constraint_chain = constraint_prompt | GPT4.with_structured_output(schema=ScheduleData)

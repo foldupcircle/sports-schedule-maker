@@ -1,4 +1,9 @@
+import json
+
 from leagues import NFL_TEAMS, NBA_TEAMS, MLB_TEAMS, IPL_TEAMS, EPL_TEAMS
+from ai_chains import constraint_chain
+from test_prompts import nfl_prompt
+from utils import convert_teams_to_dict
 
 def main():
     league = str(input())
@@ -22,6 +27,11 @@ def main():
     else:
         raise ValueError('Input must be one of: NFL, NBA, MLB, IPL, EPL')
     print(len(teams), games)
+
+    json_teams = json.dumps(convert_teams_to_dict(teams))
+
+    response = constraint_chain.invoke({'teams': json_teams, 'constraints': nfl_prompt})
+    print(response)
 
 if __name__ == '__main__':
     main()

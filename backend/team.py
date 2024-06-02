@@ -5,5 +5,6 @@ class Team():
         self.team_name = team_name
         self.fanbase = fanbase
         self.division = division
+        self.conference = 
         self.home_stadium = home_stadium
         
