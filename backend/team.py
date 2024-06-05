@@ -1,4 +1,5 @@
 from stadium import Stadium
+from past_season_data import division_data
 
 class Team():
     def __init__(self, team_name: str, fanbase: int, division: str, home_stadium: Stadium) -> None:
@@ -6,8 +7,11 @@ class Team():
         self.fanbase = fanbase
         self.division = division
         self.home_stadium = home_stadium
-        self.conference = self._set_conference(self.division)
-        
+        self.conference = self._set_conference(division)
+        if self.conference == 'NFC' or self.conference == 'AFC':
+            self.inter_conference = self._set_inter_conference_division(division)
+            self.intra_conference = self._set_intra_conference_division(division)
+            print(self.inter_conference)
 
     def _set_conference(self, division: str) -> None:
         if division.startswith('NFC'): # NFL
@@ -29,3 +33,8 @@ class Team():
         else:
             return 'Other'  # For any divisions not covered above or to handle unexpected inputs
         
+    def _set_inter_conference_division(self, division: str):
+        return division_data['inter_conference'][division][3]
+    
+    def _set_intra_conference_division(self, division: str) -> str:
+        return division_data['intra_conference'][division][2]

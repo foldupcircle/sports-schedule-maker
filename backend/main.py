@@ -33,8 +33,17 @@ def main():
 
     # json_teams = json.dumps(convert_teams_to_dict(teams))
     df = nfl.import_schedules([2023])
-    # print(df.iloc[256])
-    process_last_years_schedule(df)
+
+    # TODO: 
+    # Get standings from previous year
+    # Determine which games need to be played
+    # Determine 17th game for each team
+    # Detemine final list of 272 regular season games
+
+    # TODO: more after
+    # Explore whether AI or optimization is better approach
+    # Explore gurobi, or maybe use casadi :eyes:
+
 
     # response = constraint_chain.invoke({'teams': json_teams, 'constraints': nfl_prompt})
     # print(response)

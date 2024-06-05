@@ -12,13 +12,3 @@ def convert_teams_to_dict(teams: List[Team]):
                  'conference': team.conference} 
                  for team in teams]
     return team_arr
-
-def process_last_years_schedule(df: pd.DataFrame) -> None:
-    print(df.tail())
-    print(df.iloc[100])
-    
-    for i in df.shape[0]:
-        if df.iloc[i].game_type != 'REG':
-            continue
-        
-
