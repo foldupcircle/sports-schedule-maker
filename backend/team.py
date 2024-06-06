@@ -11,7 +11,6 @@ class Team():
         if self.conference == 'NFC' or self.conference == 'AFC':
             self.inter_conference = self._set_inter_conference_division(division)
             self.intra_conference = self._set_intra_conference_division(division)
-            print(self.inter_conference)
 
     def _set_conference(self, division: str) -> None:
         if division.startswith('NFC'): # NFL
