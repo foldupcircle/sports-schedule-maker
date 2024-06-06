@@ -5,7 +5,7 @@ import pandas as pd
 from leagues import NFL_TEAMS_DICT, NBA_TEAMS_DICT, MLB_TEAMS_DICT, IPL_TEAMS_DICT, EPL_TEAMS_DICT
 from ai_chains import constraint_chain
 from test_prompts import nfl_prompt
-from utils import convert_teams_to_dict, process_last_years_schedule
+from utils import convert_teams_to_dict
 
 def main():
     # league = str(input('Enter League: '))
