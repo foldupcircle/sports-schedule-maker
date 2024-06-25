@@ -26,13 +26,15 @@ white = (255, 255, 255)
 black = (0, 0, 0)
 
 MAIN_COLORS = {name: light_blue_1 for name in ['main']}
-TEAM_COLORS = {f'Team.{name}': light_red_2 for name in ['__init__']}
-STADIUM_COLORS = {f'Stadium.{name}': light_orange_1 for name in ['__init__', 'add_message']}
+TEAM_COLORS = {f'Team.{name}': light_red_2 for name in ['__init__', '_set_conference', '_set_inter_conference_division', '_set_intra_conference_division']}
+STADIUM_COLORS = {f'Stadium.{name}': light_red_2 for name in ['__init__']}
+MATCHUPS_COLORS = {name: light_orange_1 for name in ['determine_matchups']}
 
 COLORS = {}
 COLORS.update(MAIN_COLORS)
 COLORS.update(TEAM_COLORS)
 COLORS.update(STADIUM_COLORS)
+COLORS.update(MATCHUPS_COLORS)
 
 def rgb_to_ansi(rgb):
     return '\033[38;2;{};{};{}m'.format(*rgb)

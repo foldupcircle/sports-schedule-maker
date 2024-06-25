@@ -1,4 +1,4 @@
-from stadium import Stadium
+from backend.structure.stadium import Stadium
 from backend.data.past_season_data import division_data
 
 class Team():
