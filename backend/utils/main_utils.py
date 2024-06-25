@@ -2,6 +2,8 @@ from typing import List, Tuple, Dict
 import pandas as pd
 
 from backend.structure.team import Team
+from backend.data.nfl_teams_abb import nfl_teams_abb
+from backend.utils.debug import debug
 from backend.data.leagues import NFL_TEAMS_DICT, NBA_TEAMS_DICT, MLB_TEAMS_DICT, IPL_TEAMS_DICT, EPL_TEAMS_DICT
 
 def convert_teams_to_dict(teams: List[Team]):
@@ -33,3 +35,17 @@ def choose_league(league: str) -> Tuple[Dict[str, Team], int]:
     else:
         raise ValueError('Input must be one of: NFL, NBA, MLB, IPL, EPL')
     return teams, games
+
+def check_matchup(schedule: pd.DataFrame, home_team_name: str, away_team_name: str) -> bool:
+    '''
+    Check if the match between the two teams with one being home and other being away happened in the given schedule
+    '''
+    home_team_name = nfl_teams_abb[home_team_name]
+    away_team_name = nfl_teams_abb[away_team_name]
+    game = schedule.loc[(schedule['home_team'] == home_team_name) & 
+                        (schedule['game_type'] == 'REG') & 
+                        (schedule['away_team'] == away_team_name)]
+    if game.empty: return False
+    elif len(game) == 1: return True
+    else: raise ValueError('There must be 0 or 1 occurences of this game. Expected value received.')
+    

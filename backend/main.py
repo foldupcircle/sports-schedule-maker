@@ -1,6 +1,8 @@
 import json
-import nfl_data_py as nfl
+from datetime import date
+
 import pandas as pd
+import nfl_data_py as nfl
 
 from backend.data.leagues import NFL_TEAMS_DICT, NBA_TEAMS_DICT, MLB_TEAMS_DICT, IPL_TEAMS_DICT, EPL_TEAMS_DICT
 from backend.utils.main_utils import convert_teams_to_dict
@@ -12,6 +14,7 @@ def main():
     league = 'NFL'
     teams = []
     games = 0
+    year = int(date.today().strftime('%Y'))
     if league == 'NFL':
         teams = NFL_TEAMS_DICT
         games = 17
@@ -29,8 +32,6 @@ def main():
         games = 38
     else:
         raise ValueError('Input must be one of: NFL, NBA, MLB, IPL, EPL')
-    debug(len(teams))
-    debug(games)
 
     # json_teams = json.dumps(convert_teams_to_dict(teams))
     df = nfl.import_schedules([2023])
@@ -38,7 +39,8 @@ def main():
     # TODO: 
     # Get standings from previous year
     # Determine which games need to be played
-    matchups = determine_matchups('NFL')
+
+    matchups = determine_matchups('NFL', year)
     debug(matchups)
 
     # Determine 17th game for each team
