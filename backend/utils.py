@@ -40,4 +40,5 @@ def determine_matchups(league: str):
     matchups = []
 
     for team in teams:
+        
         matchups.append(())
