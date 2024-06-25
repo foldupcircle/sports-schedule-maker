@@ -10,7 +10,7 @@ def adjust_brightness(color, brightness_factor):
     rgb = [int(x*255.0) for x in colorsys.hls_to_rgb(*hls)] # Convert back to RGB
     return rgb
 
-
+# colors
 red = (255, 0, 0)
 light_red_1 = adjust_brightness(red, 0.15)
 light_red_2 = adjust_brightness(red, 0.3)
@@ -22,7 +22,6 @@ blue = (0, 0, 255)
 light_blue_1 = adjust_brightness(blue, 0.15)
 purple = (128, 0, 128)
 pink = (255, 192, 203)
-
 white = (255, 255, 255)
 black = (0, 0, 0)
 
@@ -34,7 +33,6 @@ COLORS = {}
 COLORS.update(MAIN_COLORS)
 COLORS.update(TEAM_COLORS)
 COLORS.update(STADIUM_COLORS)
-
 
 def rgb_to_ansi(rgb):
     return '\033[38;2;{};{};{}m'.format(*rgb)
@@ -66,3 +64,4 @@ def debug(*args, mode='debug'):
             print_str = f"{rgb_to_ansi(color)}{indent_str}[{function_print_str}] : {arg_name} = {arg_value}\033[0m"
         # print("Debugging with MODE:", get_log_mode())
         log_config.debug_custom(print_str, mode)
+        

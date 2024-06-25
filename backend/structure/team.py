@@ -1,5 +1,5 @@
 from stadium import Stadium
-from past_season_data import division_data
+from backend.data.past_season_data import division_data
 
 class Team():
     def __init__(self, team_name: str, fanbase: int, division: str, home_stadium: Stadium) -> None:

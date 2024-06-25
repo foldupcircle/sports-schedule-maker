@@ -2,7 +2,7 @@ import json
 import nfl_data_py as nfl
 import pandas as pd
 
-from leagues import NFL_TEAMS_DICT, NBA_TEAMS_DICT, MLB_TEAMS_DICT, IPL_TEAMS_DICT, EPL_TEAMS_DICT
+from backend.data.leagues import NFL_TEAMS_DICT, NBA_TEAMS_DICT, MLB_TEAMS_DICT, IPL_TEAMS_DICT, EPL_TEAMS_DICT
 from backend.utils.main_utils import convert_teams_to_dict
 
 def main():
