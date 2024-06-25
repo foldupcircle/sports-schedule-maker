@@ -28,11 +28,19 @@ def determine_matchups(league: str, year: int):
     '''
     teams, games = choose_league(league)
     total_games = (len(teams) * games) / 2
+    
     inter_conf_schedule = nfl.import_schedules([year - 4])
     intra_conf_schedule = nfl.import_schedules([year - 3])
 
     prevent_dups_dict = defaultdict(int) # Store teams we've already went through in dict, so it's easy to check for dups
     matchups = []
+
+    # Schedules and Standings (These are used, don't delete)
+    standings_2021 = pd.read_csv('backend/data/2021_NFL_Standings_by_Division.csv')
+    standings_2022 = pd.read_csv('backend/data/2022_NFL_Standings_by_Division.csv')
+    standings_2023 = pd.read_csv('backend/data/2023_NFL_Standings_by_Division.csv')
+    schedule_2023 = nfl.import_schedules([year - 1])
+    schedule_2022 = nfl.import_schedules([year - 2])
 
     for team in teams.values():
         # Add to dups dict
@@ -78,24 +86,43 @@ def determine_matchups(league: str, year: int):
 
         # SPF
         all_divisions = division_data['inter_conference'].keys()
-        conf_divs = [div for div in all_divisions if div.startswith(conf)]
-        conf_divs.remove(division)
-        conf_divs.remove(team.intra_conference)
+        spf_divs = [div for div in all_divisions if div.startswith(conf)]
+        spf_divs.remove(division)
+        spf_divs.remove(team.intra_conference)
 
-        df = pd.read_csv('backend/data/2023_NFL_Standings_by_Division.csv')
+        standing = int(standings_2023.loc[standings_2023['team'] == team.team_name]['standing'].iloc[0])
 
-        standing = int(df.loc[df['team'] == team.team_name]['standing'].iloc[0])
-
-        spf_teams = df.loc[(df['standing'] == standing) & 
-                           (df['division'].isin(conf_divs))]['team']
+        spf_teams = list(standings_2023.loc[(standings_2023['standing'] == standing) & 
+                           (standings_2023['division'].isin(spf_divs))]['team'])
+        
         
         for opp in spf_teams:
             if prevent_dups_dict[opp]: continue
             opp = teams[opp]
-            matchups.append((team, opp)) # Assuming Home rn
 
+            # Check Past Standing Games to determine home/away
+            opp_div = opp.division
+            last_spf_year_by_div = year - 1 if opp_div != team.year_intra_conf(year - 1) else year - 2
+
+            # 1. Get schedules
+            standings_year_before = locals()[f'standings_{last_spf_year_by_div - 1}']
+            year_by_div_schedule = locals()[f'schedule_{last_spf_year_by_div}']
+
+            # 2. Check standings from year before to determine same standing teams
+            same_div_team_name = standings_year_before.loc[(standings_year_before['standing'] == standing) & 
+                                            (standings_year_before['division'] == division)].iloc[0]['team']
+            opp_div_team_name = standings_year_before.loc[(standings_year_before['standing'] == standing) & 
+                                            ((standings_year_before['division'] == opp_div))].iloc[0]['team']
+            
+            # 3. Check matchup in year by div schedule and add matchup
+            game_did_happen = check_matchup(year_by_div_schedule, same_div_team_name, opp_div_team_name)
+            if game_did_happen: matchups.append((opp, team)) # Away Game bc prev was Home
+            else: matchups.append((team, opp)) # Home Game bc prev was Away
+            
         # 17th Game
         # TODO
+
+
     # pprint('Home | Away')
     # for t in matchups:
     #     pprint(t[0].team_name + ' | ' + t[1].team_name)

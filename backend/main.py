@@ -11,27 +11,7 @@ from backend.utils.debug import debug
 
 def main():
     # league = str(input('Enter League: '))
-    league = 'NFL'
-    teams = []
-    games = 0
     year = int(date.today().strftime('%Y'))
-    if league == 'NFL':
-        teams = NFL_TEAMS_DICT
-        games = 17
-    elif league == 'NBA':
-        teams = NBA_TEAMS_DICT
-        games = 82
-    elif league == 'MLB':
-        teams = MLB_TEAMS_DICT
-        games = 162
-    elif league == 'IPL':
-        teams = IPL_TEAMS_DICT
-        games = 14
-    elif league == 'EPL':
-        teams = EPL_TEAMS_DICT
-        games = 38
-    else:
-        raise ValueError('Input must be one of: NFL, NBA, MLB, IPL, EPL')
 
     # json_teams = json.dumps(convert_teams_to_dict(teams))
     df = nfl.import_schedules([2023])

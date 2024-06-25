@@ -1,3 +1,5 @@
+from datetime import date
+
 from backend.structure.stadium import Stadium
 from backend.data.past_season_data import division_data
 
@@ -37,3 +39,8 @@ class Team():
     
     def _set_intra_conference_division(self, division: str) -> str:
         return division_data['intra_conference'][division][2]
+    
+    def year_intra_conf(self, year: int):
+        current_year = int(date.today().strftime('%Y'))
+        # There are edge cases here to solve, will do later
+        return division_data['intra_conference'][self.division][(current_year - year - 1) % 3] # Assuming 2024 is current year
