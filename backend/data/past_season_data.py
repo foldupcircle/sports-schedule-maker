@@ -20,3 +20,14 @@ division_data = {
         "NFC West": ["NFC East", "NFC South", "NFC North"]
     }
 }
+
+nfl_2024_17th_game_opponents = {
+    "AFC East": ["NFC North"],
+    "AFC North": ["NFC South"],
+    "AFC South": ["NFC East"],
+    "AFC West": ["NFC West"],
+    "NFC East": ["AFC South"],
+    "NFC North": ["AFC East"],
+    "NFC South": ["AFC North"],
+    "NFC West": ["AFC West"]
+}

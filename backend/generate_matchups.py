@@ -6,7 +6,7 @@ from pprint import pprint
 
 from backend.utils.debug import debug
 from backend.utils.main_utils import choose_league, check_matchup
-from backend.data.past_season_data import division_data
+from backend.data.past_season_data import division_data, nfl_2024_17th_game_opponents
 
 def determine_matchups(league: str, year: int):
     '''
@@ -95,7 +95,6 @@ def determine_matchups(league: str, year: int):
         spf_teams = list(standings_2023.loc[(standings_2023['standing'] == standing) & 
                            (standings_2023['division'].isin(spf_divs))]['team'])
         
-        
         for opp in spf_teams:
             if prevent_dups_dict[opp]: continue
             opp = teams[opp]
@@ -121,7 +120,15 @@ def determine_matchups(league: str, year: int):
             
         # 17th Game
         # TODO
-
+        # Home and Away is determined by conference, so 2024 is NFC home
+        # matchups still have to figure out which division play which
+        opp_div_17 = nfl_2024_17th_game_opponents[division][0]
+        opp_team_name = standings_2023.loc[(standings_2023['standing'] == standing) & 
+                           (standings_2023['division'] == opp_div_17)].iloc[0]['team']
+        if prevent_dups_dict[opp]: continue
+        opp = teams[opp_team_name]
+        if conf == 'NFC': matchups.append((team, opp))
+        else: matchups.append((opp, team))
 
     # pprint('Home | Away')
     # for t in matchups:
