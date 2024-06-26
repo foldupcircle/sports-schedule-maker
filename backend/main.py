@@ -9,12 +9,12 @@ from backend.solver import Solver
 
 def main():
     year = int(date.today().strftime('%Y'))
-    # matchups = determine_matchups('NFL', year)
+    matchups = determine_matchups('NFL', year)
 
     # TODO: more after
     # Explore whether AI or optimization is better approach
     # Explore gurobi, or maybe use casadi :eyes:
-    solver = Solver()
+    solver = Solver(272, matchups)
     debug(solver.solve())
 
 
