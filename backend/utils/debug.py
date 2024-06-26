@@ -30,6 +30,7 @@ TEAM_COLORS = {f'Team.{name}': light_red_2 for name in ['__init__', '_set_confer
 STADIUM_COLORS = {f'Stadium.{name}': light_red_2 for name in ['__init__']}
 MATCHUPS_COLORS = {name: light_orange_1 for name in ['determine_matchups']}
 UTIL_COLORS = {name: yellow for name in ['convert_teams_to_dict', 'choose_league', 'check_matchup']}
+SOLVE_COLORS = {f'Solver.{name}': purple for name in ['__init__', 'solve', '_sort_matrix', '_add_constraints', '_add_cost']}
 
 COLORS = {}
 COLORS.update(MAIN_COLORS)
@@ -37,6 +38,7 @@ COLORS.update(TEAM_COLORS)
 COLORS.update(STADIUM_COLORS)
 COLORS.update(MATCHUPS_COLORS)
 COLORS.update(UTIL_COLORS)
+COLORS.update(SOLVE_COLORS)
 
 def rgb_to_ansi(rgb):
     return '\033[38;2;{};{};{}m'.format(*rgb)

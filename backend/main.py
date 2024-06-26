@@ -15,7 +15,7 @@ def main():
     # Explore whether AI or optimization is better approach
     # Explore gurobi, or maybe use casadi :eyes:
     solver = Solver(272, matchups)
-    debug(solver.solve())
+    # debug(solver.solve())
 
 
     # response = constraint_chain.invoke({'teams': json_teams, 'constraints': nfl_prompt})
