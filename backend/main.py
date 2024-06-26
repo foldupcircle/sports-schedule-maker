@@ -5,14 +5,17 @@ import nfl_data_py as nfl
 
 from backend.generate_matchups import determine_matchups
 from backend.utils.debug import debug
+from backend.solver import Solver
 
 def main():
     year = int(date.today().strftime('%Y'))
-    matchups = determine_matchups('NFL', year)
+    # matchups = determine_matchups('NFL', year)
 
     # TODO: more after
     # Explore whether AI or optimization is better approach
     # Explore gurobi, or maybe use casadi :eyes:
+    solver = Solver()
+    debug(solver.solve())
 
 
     # response = constraint_chain.invoke({'teams': json_teams, 'constraints': nfl_prompt})
