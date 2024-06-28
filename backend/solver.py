@@ -8,6 +8,7 @@ from backend.data.solver_help import nfl_teams_to_indices, indices_to_nfl_teams
 from backend.structure.team import Team
 from backend.utils.debug import debug
 from backend.data.leagues import NFL_TEAMS_DICT
+# from backend.utils.solver_utils import print_MVars
 
 class Solver():
     def __init__(self, total_games: int, matchups: List[Tuple[Team, Team]]) -> None:
@@ -21,8 +22,9 @@ class Solver():
 
         # variables
         self.networks = self.m.addMVar((32, 18), 0, 31, vtype=GRB.INTEGER, name='network_time_slots') # Represents the network each game will be broadcasted on and at what time
-        self.grid = self.m.addMVar((32, 18), -2, 31, vtype=GRB.INTEGER, name='weekly_schedule') # 32 teams, 18 weeks
-        self.host = self.m.addMVar((32, 18), 0, 31, vtype=GRB.BINARY, name='home/away') # Corresponding home/away matrix
+        self.grid = self.m.addMVar((32, 18), lb=0, ub=32, vtype=GRB.INTEGER, name='weekly_schedule') # 32 teams, 18 weeks
+        self.host = self.m.addMVar((32, 18), 0, 1, vtype=GRB.BINARY, name='home/away') # Corresponding home/away matrix
+        self.b = self.m.addMVar((32, 18), vtype=GRB.BINARY, name='intermediate_binary') # To make sure the bye weeks are synced
 
         # TODO: Next Steps
         # Set up basic constraints to match these variables up
@@ -35,18 +37,21 @@ class Solver():
 
     def _add_cost(self):
         cost = self.grid.sum() + self.host.sum() + self.networks.sum()
-        self.m.setObjective(cost, GRB.MAXIMIZE)
+        self.m.setObjective(cost, GRB.MINIMIZE)
 
     def _add_constraints(self):
         # Setting BYE Weeks to 0 in host and adding home/away total constraints
+        C = 1e2
         for i in range(self.host.shape[0]):
             home_games = 9 if NFL_TEAMS_DICT[indices_to_nfl_teams[i]].conference == 'NFC' else 8
-            # debug(self.host[i, :].sum())
-            debug(i)
             self.m.addConstr(self.host.sum(axis=1)[i] == home_games)
             for j in range(self.host.shape[1]):
-                # Because of how piecewise functions work, I have to do this, add slack variable for -2 case
-                self.m.addGenConstrPWL(self.grid[i, j], self.host[i, j], [-2, -1], [1, 0])
+                # Add constraints to enforce the relationship
+                # If x is nonnegative, b should be 1; If x is negative, b should be 0
+                self.m.addConstr(self.grid[i, j] >= -C * (1 - self.b[i, j]), name="nonneg_constraint")
+                self.m.addConstr(self.grid[i, j] <= C * self.b[i, j] - 1e-6, name="neg_constraint")
+                self.m.addConstr((self.b[i, j] == 0) >> (self.host[i, j] == 0), name='binary_to_bye')
+        # self.m.addConstr(self.grid[0, 0] == 20)
 
     def _sort_matrix(self, mat: np.array) -> np.array:
         sorted_mat = np.vstack((sorted([col for col in mat], key=lambda x: x[0])))
@@ -54,9 +59,11 @@ class Solver():
     
     def solve(self):
         self.m.optimize()
-        var_name = 'network_time_slots'
-        debug(self.m.getVarByName(var_name))
-        for v in self.m.getVars():
-            if v.VarName.startswith(('week')):
-                debug(v.VarName)
-                debug(v.X)
+        debug(self.grid.X)
+        debug(self.host.X)
+        # debug(self.x)
+        # for v in self.m.getVars():
+        #     if v.VarName.startswith('week'):
+        #         debug(v.X)
+        
+        
