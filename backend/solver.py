@@ -27,7 +27,8 @@ class Solver():
         self.b = self.m.addMVar((32, 18), vtype=GRB.BINARY, name='intermediate_binary') # To make sure the bye weeks are synced
         self.bv = self.m.addMVar((2, 8), vtype=GRB.BINARY, name='binary_even_bye_week_helpers') # To make sure every week, there are an even number of teams getting a bye week
         # TODO: Next Steps
-        # Set up basic constraints to match these variables up
+        # Set up basic constraints to match these variables up - BYE Weeks done
+            #  Columns of home and away must add up to 16
         # Add cost for a few of the soft constraints
         # Run gurobi and validate
 
@@ -60,14 +61,20 @@ class Solver():
 
         # There should be exactly 32 (576-32=544) BYE Weeks, 1 per row, 2, 4, or 6 per col
         self.m.addConstr(self.b.sum() == 544, name='exactly_32_BYE_weeks')
-        # col_sum = self.b.sum(axis=0)
-        # debug(col_sum.size)
-        debug(self.b[:, j-1].sum().size)
         list_indices = [5, 6, 7, 9, 10, 11, 12, 14] # When BYE weeks are given
         for j in range(len(list_indices)):
             col_sum = self.b[:, list_indices[j]-1].sum().item()
             bin_sum = self.bv[:, j].sum().item()
-            self.m.addConstr(col_sum == 26 + 2*bin_sum)            
+            self.m.addConstr(col_sum == 26 + 2*bin_sum)
+
+            # In bye weeks, number of home teams are different
+            host_col_sum = self.host[:, list_indices[j]-1].sum().item()
+            self.m.addConstr(host_col_sum == 15 - bin_sum)
+
+        for j in range(18): # In non-bye weeks, there will be 16 home games and 16 away
+            if j + 1 not in list_indices:
+                col_sum = self.host[:, j].sum().item()
+                self.m.addConstr(col_sum == 16)
 
     def _sort_matrix(self, mat: np.array) -> np.array:
         sorted_mat = np.vstack((sorted([col for col in mat], key=lambda x: x[0])))
