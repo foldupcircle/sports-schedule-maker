@@ -1,4 +1,5 @@
 from datetime import date
+import numpy as np
 
 import pandas as pd
 import nfl_data_py as nfl
@@ -15,7 +16,9 @@ def main():
     # Explore whether AI or optimization is better approach
     # Explore gurobi, or maybe use casadi :eyes:
     solver = Solver(272, matchups)
-    # debug(solver.solve())
+    x_sol, M_sol = solver.solve()
+    debug(x_sol)
+    debug(np.round(M_sol))
 
 
     # response = constraint_chain.invoke({'teams': json_teams, 'constraints': nfl_prompt})
