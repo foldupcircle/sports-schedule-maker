@@ -19,7 +19,7 @@ def determine_matchups(league: str, year: int):
         The conference that hosts this game rotates by year. 2024 is NFC
     * SPF = Same-Place Finisher (Not how good a sunscreen is)
     
-    Input: league you want to generate matchups for (otu of NFL, NBA, MLB, IPL, EPL)
+    Input: league you want to generate matchups for (out of NFL, NBA, MLB, IPL, EPL)
 
     Returns: 
     - matchups (List[Tuple[Team, Team]]): Each tuple in the list is a matchup that should happend at some point during the season
