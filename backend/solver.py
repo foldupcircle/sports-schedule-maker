@@ -27,8 +27,7 @@ class Solver():
         self.b = self.m.addMVar((32, 18), vtype=GRB.BINARY, name='intermediate_binary') # To make sure the bye weeks are synced
         self.bv = self.m.addMVar((2, 8), vtype=GRB.BINARY, name='binary_even_bye_week_helpers') # To make sure every week, there are an even number of teams getting a bye week
         # TODO: Next Steps
-        # Set up basic constraints to match these variables up - BYE Weeks done
-            #  Columns of home and away must add up to 16
+        # Set constraints to match up the matchups
         # Add cost for a few of the soft constraints
         # Run gurobi and validate
 
