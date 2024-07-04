@@ -18,7 +18,8 @@ def determine_matchups(league: str, year: int):
     5. 1 game against a team from a div in the other conf (based on last year's standings) (17th Game)
         The conference that hosts this game rotates by year. 2024 is NFC
     * SPF = Same-Place Finisher (Not how good a sunscreen is)
-    
+    * SPF rotates Based on a Division Pairing, which is why you have to go back 3 years to find the correct H/A combo
+
     Input: league you want to generate matchups for (out of NFL, NBA, MLB, IPL, EPL)
 
     Returns: 
@@ -99,7 +100,6 @@ def determine_matchups(league: str, year: int):
         
         home_away_check = 0
         for opp in spf_teams:
-            debug(opp)
             opp = teams[opp]
 
             # Check Past Standing Games to determine home/away
@@ -109,7 +109,6 @@ def determine_matchups(league: str, year: int):
             # 1. Get schedules
             standings_year_before = locals()[f'standings_{last_spf_year_by_div - 1}']
             year_by_div_schedule = locals()[f'schedule_{last_spf_year_by_div}']
-            debug(last_spf_year_by_div)
 
             # 2. Check standings from year before to determine same standing teams
             same_div_team_name = standings_year_before.loc[(standings_year_before['standing'] == standing) & 
@@ -120,19 +119,12 @@ def determine_matchups(league: str, year: int):
             # 3. Check matchup in year by div schedule and add matchup
             game_did_happen = check_matchup(year_by_div_schedule, same_div_team_name, opp_div_team_name)
             home_away_check += game_did_happen
-            debug(home_away_check)
             if prevent_dups_dict[opp.team_name]: continue
             if game_did_happen: matchups.append((opp, team)) # Away Game bc prev was Home
             else: matchups.append((team, opp)) # Home Game bc prev was Away
         
-        debug(team.team_name)
         if home_away_check != 1:
             debug(team.team_name)
-            debug(matchups[-1][0].team_name)
-            debug(matchups[-1][1].team_name)
-            debug(matchups[-2][0].team_name)
-            debug(matchups[-2][1].team_name)
-            debug(home_away_check)
             raise ValueError('Each team must have 1 home and 1 away game with their spf teams')
 
         # 17th Game
