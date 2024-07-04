@@ -36,11 +36,13 @@ def determine_matchups(league: str, year: int):
     matchups = []
 
     # Schedules and Standings (These are used, don't delete)
+    standings_2020 = pd.read_csv('backend/data/2020_NFL_Standings_by_Division.csv')
     standings_2021 = pd.read_csv('backend/data/2021_NFL_Standings_by_Division.csv')
     standings_2022 = pd.read_csv('backend/data/2022_NFL_Standings_by_Division.csv')
     standings_2023 = pd.read_csv('backend/data/2023_NFL_Standings_by_Division.csv')
     schedule_2023 = nfl.import_schedules([year - 1])
     schedule_2022 = nfl.import_schedules([year - 2])
+    schedule_2021 = intra_conf_schedule
 
     for team in teams.values():
         # Add to dups dict
@@ -102,7 +104,7 @@ def determine_matchups(league: str, year: int):
 
             # Check Past Standing Games to determine home/away
             opp_div = opp.division
-            last_spf_year_by_div = year - 1 if opp_div != team.year_intra_conf(year - 1) else year - 2
+            last_spf_year_by_div = year - 3
 
             # 1. Get schedules
             standings_year_before = locals()[f'standings_{last_spf_year_by_div - 1}']

@@ -1,0 +1,33 @@
+division,standing,team,record
+AFC East,0,Buffalo Bills,13-3
+AFC East,1,Miami Dolphins,10-6
+AFC East,2,New England Patriots,7-9
+AFC East,3,New York Jets,2-14
+AFC North,0,Pittsburgh Steelers,12-4
+AFC North,1,Baltimore Ravens,11-5
+AFC North,2,Cleveland Browns,11-5
+AFC North,3,Cincinnati Bengals,4-11-1
+AFC South,0,Tennessee Titans,11-5
+AFC South,1,Indianapolis Colts,11-5
+AFC South,2,Houston Texans,4-12
+AFC South,3,Jacksonville Jaguars,1-15
+AFC West,0,Kansas City Chiefs,14-2
+AFC West,1,Las Vegas Raiders,8-8
+AFC West,2,Los Angeles Chargers,7-9
+AFC West,3,Denver Broncos,5-11
+NFC East,0,Washington Commanders,7-9
+NFC East,1,New York Giants,6-10
+NFC East,2,Dallas Cowboys,6-10
+NFC East,3,Philadelphia Eagles,4-11-1
+NFC North,0,Green Bay Packers,13-3
+NFC North,1,Chicago Bears,8-8
+NFC North,2,Minnesota Vikings,7-9
+NFC North,3,Detroit Lions,5-11
+NFC South,0,New Orleans Saints,12-4
+NFC South,1,Tampa Bay Buccaneers,11-5
+NFC South,2,Carolina Panthers,5-11
+NFC South,3,Atlanta Falcons,4-12
+NFC West,0,Seattle Seahawks,12-4
+NFC West,1,Los Angeles Rams,10-6
+NFC West,2,Arizona Cardinals,8-8
+NFC West,3,San Francisco 49ers,6-10
