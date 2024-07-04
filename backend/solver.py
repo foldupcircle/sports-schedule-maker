@@ -3,6 +3,7 @@ from gurobipy import GRB
 import numpy as np
 import scipy.sparse as sp
 from typing import List, Tuple
+from pprint import pprint
 
 from backend.data.solver_help import nfl_teams_to_indices, indices_to_nfl_teams
 from backend.structure.team import Team
@@ -16,11 +17,19 @@ class Solver():
 
         self.m = gp.Model('mip1')
         self.total_games = total_games
+        self.num_teams = 32
+        self.total_weeks = 18
         self.matchups = matchups
         self.matchup_indices = self._sort_matrix(np.array([[nfl_teams_to_indices[m[0].team_name], 
                                           nfl_teams_to_indices[m[1].team_name]] for m in self.matchups]))
-        self.num_teams = 32
-        self.total_weeks = 18
+        debug(len(self.matchup_indices))
+        self.per_team_matchups = {}
+        for matchup in self.matchup_indices:
+            for num in matchup:
+                if num not in self.per_team_matchups.keys():
+                    self.per_team_matchups[num] = []
+                self.per_team_matchups[num].append(matchup)
+        pprint(self.per_team_matchups)
 
         # Variables
         num_networks = 10
@@ -37,8 +46,8 @@ class Solver():
         # Run gurobi and validate
 
         # Setting Up optimization problem
-        self._add_cost()
-        self._add_constraints()
+        # self._add_cost()
+        # self._add_constraints()
 
     def _add_cost(self):
         cost = self.grid.sum() + self.host.sum() + self.networks.sum()

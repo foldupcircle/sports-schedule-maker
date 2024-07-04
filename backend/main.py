@@ -16,7 +16,7 @@ def main():
     # Explore whether AI or optimization is better approach
     # Explore gurobi, or maybe use casadi :eyes:
     solver = Solver(272, matchups)
-    solver.solve()
+    # solver.solve()
     # debug(x_sol)
     # debug(np.round(M_sol))
 

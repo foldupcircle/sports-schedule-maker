@@ -79,7 +79,7 @@ def determine_matchups(league: str, year: int):
             if prevent_dups_dict[opp.team_name]: continue
             if game_did_happen: matchups.append((opp, team)) # Away Game Since last one was Home
             else: matchups.append((team, opp)) # Home Game Since last one was Away
-        
+            
         if home_away_check != 2:
             debug(team.team_name)
             raise ValueError('Each team must have 2 home and 2 away games with their respective inter conference division')
@@ -95,8 +95,9 @@ def determine_matchups(league: str, year: int):
         spf_teams = list(standings_2023.loc[(standings_2023['standing'] == standing) & 
                            (standings_2023['division'].isin(spf_divs))]['team'])
         
+        home_away_check = 0
         for opp in spf_teams:
-            if prevent_dups_dict[opp]: continue
+            debug(opp)
             opp = teams[opp]
 
             # Check Past Standing Games to determine home/away
@@ -106,6 +107,7 @@ def determine_matchups(league: str, year: int):
             # 1. Get schedules
             standings_year_before = locals()[f'standings_{last_spf_year_by_div - 1}']
             year_by_div_schedule = locals()[f'schedule_{last_spf_year_by_div}']
+            debug(last_spf_year_by_div)
 
             # 2. Check standings from year before to determine same standing teams
             same_div_team_name = standings_year_before.loc[(standings_year_before['standing'] == standing) & 
@@ -115,14 +117,27 @@ def determine_matchups(league: str, year: int):
             
             # 3. Check matchup in year by div schedule and add matchup
             game_did_happen = check_matchup(year_by_div_schedule, same_div_team_name, opp_div_team_name)
+            home_away_check += game_did_happen
+            debug(home_away_check)
+            if prevent_dups_dict[opp.team_name]: continue
             if game_did_happen: matchups.append((opp, team)) # Away Game bc prev was Home
             else: matchups.append((team, opp)) # Home Game bc prev was Away
-            
+        
+        debug(team.team_name)
+        if home_away_check != 1:
+            debug(team.team_name)
+            debug(matchups[-1][0].team_name)
+            debug(matchups[-1][1].team_name)
+            debug(matchups[-2][0].team_name)
+            debug(matchups[-2][1].team_name)
+            debug(home_away_check)
+            raise ValueError('Each team must have 1 home and 1 away game with their spf teams')
+
         # 17th Game
         opp_div_17 = nfl_2024_17th_game_opponents[division][0]
         opp_team_name = standings_2023.loc[(standings_2023['standing'] == standing) & 
                            (standings_2023['division'] == opp_div_17)].iloc[0]['team']
-        if prevent_dups_dict[opp]: continue
+        if prevent_dups_dict[opp_team_name]: continue
         opp = teams[opp_team_name]
         if conf == 'NFC': matchups.append((team, opp))
         else: matchups.append((opp, team))
