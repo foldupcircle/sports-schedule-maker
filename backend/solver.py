@@ -30,12 +30,49 @@ class Solver():
                     self.per_team_matchups[num] = [[], []]
                 self.per_team_matchups[num][0].append(matchup[1-i])
                 self.per_team_matchups[num][1].append(i)
+        
+        # Sorting and filtering based on team number
+        for key in self.per_team_matchups.keys():
+            zipped_lists = list(zip(self.per_team_matchups[key][0], self.per_team_matchups[key][1]))
+            zipped_lists.sort()
+            sorted_list1, sorted_list2 = zip(*zipped_lists)
+            self.per_team_matchups[key][0] = list(sorted_list1)
+            self.per_team_matchups[key][1] = list(sorted_list2)
+            debug(self.per_team_matchups[key][0])
+            debug(self.per_team_matchups[key][1])
+
+            list1 = sorted_list1
+            list2 = sorted_list2
+
+            # Step 1: Find indices of unique elements in list1
+            unique_indices = {}
+            for index, value in enumerate(list1):
+                if value not in unique_indices:
+                    unique_indices[value] = index
+                else:
+                    unique_indices[value] = -1  # Mark duplicates with -1
+
+            # Step 2: Filter out the duplicates
+            filtered_list1 = [value for value in list1 if unique_indices[value] != -1]
+            filtered_list2 = [list2[unique_indices[value]] for value in list1 if unique_indices[value] != -1]
+
+            # Print the filtered lists
+            debug(filtered_list1)
+            debug(filtered_list2)
+            self.per_team_matchups[key][0] = filtered_list1
+            self.per_team_matchups[key][1] = filtered_list2
+
 
         # Variables
         num_networks = 10
         self.networks = self.m.addVars(self.num_teams, self.total_weeks, lb=1, ub=num_networks, vtype=GRB.INTEGER) # Represents the network each game will be broadcasted on and at what time
+        
+        # TODO: Convert this to have values -1 to 63 where 32+ are away games and update the per_team_matchups accordingly so the PWL constraint works
         self.grid = self.m.addVars(self.num_teams, self.total_weeks, lb=-1, ub=31, vtype=GRB.INTEGER) # 32 teams, 18 weeks
         self.host = self.m.addVars(self.num_teams, self.total_weeks, lb=0, ub=1, vtype=GRB.BINARY) # Corresponding home/away matrix
+        
+        # Helpers
+        self.BM = self.m.addVars(self.num_teams, self.total_weeks, self.total_weeks, vtype=GRB.BINARY) # BInary variables to ensure the matchups are being propogated properly
         self.matchup_helpers = self.m.addVars(self.num_teams, self.total_weeks, lb=0, ub=17, vtype=GRB.INTEGER) # To help index matchups
         self.b = self.m.addMVar((32, 18), vtype=GRB.BINARY, name='intermediate_binary') # To make sure the bye weeks are synced
         self.bv = self.m.addMVar((2, 8), vtype=GRB.BINARY, name='binary_even_bye_week_helpers') # To make sure every week, there are an even number of teams getting a bye week
@@ -47,25 +84,22 @@ class Solver():
         # Run gurobi and validate
 
         # Setting Up optimization problem
-        # self._add_cost()
-        # self._add_constraints()
+        self._add_cost()
+        self._add_constraints()
 
     def _add_cost(self) -> None:
         cost = self.grid.sum() + self.host.sum() + self.networks.sum()
         self.m.setObjective(cost, GRB.MINIMIZE)
 
     def _add_constraints(self) -> None:
-        # Setting matchup helpers
-        for i in range(self.total_weeks):
-            for j in range(self.total_weeks):
-                if i < j:
-                    self.m.addConstr(self.matchup_helpers[i, j])
+        self._add_prelim_matchup_constraints()
         # Setting BYE Weeks to 0 in host and adding home/away total constraints
         C = 1e2 # Big enough constant for binary value calculation
         for i in range(self.num_teams):
             # self.m.addConstr(self.host.sum(axis=1)[i] == home_games, name='num_home_games')
             self.m.addConstr(self.b[i, :].sum() == 17, name='team_total_games') # Every team plays 17 games
-
+            home_games = 9 if NFL_TEAMS_DICT[indices_to_nfl_teams[i]].conference == 'NFC' else 8
+            self.m.addConstr(self.host.sum(i, '*') == home_games)
             for j in range(self.total_weeks):
                 
                 # If grid item is nonnegative, b should be 1; If grid item is negative, b should be 0
@@ -82,16 +116,18 @@ class Solver():
                 ### MATCHUPS ###
 
                 # Constraining that a matchup should go both ways, assuming its not a bye week
-                self.m.addConstr((self.b[i, j] == 1) >> (self.grid[self.grid[i, j], j] == i))
-                self.m.addConstr((self.b[i, j] == 1) >> (self.host[self.grid[i, j], j] == 1 - self.host[i, j]))
+                self.m.update()
+                # self.m.addConstr((self.b[i, j] == 1) >> (self.grid[self.grid[i, j], j] == i))
+                # self.m.addConstr((self.b[i, j] == 1) >> (self.host[self.grid[i, j], j] == 1 - self.host[i, j]))
                 self.m.addGenConstrPWL(self.grid[i, j], self.host[i, j], self.per_team_matchups[i][0], self.per_team_matchups[i][1])
-                # for mu in self.matchup_indices:
+                
+                # binary = np.array(self.BM.select(i, j, '*'))
+                # matchup_teams = self.per_team_matchups[i][0]
+                # matchup_teams.append(-1)
+                # matchup_index = np.dot(binary, matchup_teams)
+                # self.m.addConstr(self.grid[i, j] == matchup_teams[matchup_index])
                     
-
                 ####################################################
-            
-            home_games = 9 if NFL_TEAMS_DICT[indices_to_nfl_teams[i]].conference == 'NFC' else 8
-            self.m.addConstr(self.host.sum(i, '*') == home_games)
 
         # There should be exactly 32 (576-32=544) BYE Weeks, 1 per row, 2, 4, or 6 per col
         self.m.addConstr(self.b.sum() == 544, name='exactly_32_BYE_weeks')
@@ -99,7 +135,7 @@ class Solver():
         for j in range(len(list_indices)):
             col_sum = self.b[:, list_indices[j]-1].sum().item()
             bin_sum = self.bv[:, j].sum().item()
-            self.m.addConstr(col_sum == 26 + 2*bin_sum)
+            self.m.addConstr(col_sum == 26 + 2*(2-bin_sum))
 
             # In bye weeks, number of home teams are different
             host_col_sum = self.host.sum('*', list_indices[j]-1)
@@ -110,9 +146,13 @@ class Solver():
                 col_sum = self.host.sum('*', j)
                 self.m.addConstr(col_sum == 16)
 
-    # def _add_matchup_constraints(self):
+    def _add_prelim_matchup_constraints(self):
+        # Setting Up Binary Helpers
+        for i in range(self.num_teams):
+            for j in range(self.total_weeks):
+                self.m.addConstr(self.BM.sum(i, j, '*') == 1)
+                self.m.addConstr(self.BM.sum(i, '*', j) == 1)
 
-    
     def _sort_matrix(self, mat: np.array) -> np.array:
         sorted_mat = np.vstack((sorted([col for col in mat], key=lambda x: x[0])))
         return sorted_mat
@@ -125,3 +165,4 @@ class Solver():
         print_tupledict('NETWORKS', self.networks)
         print_tupledict('GRID', self.grid)
         print_tupledict('HOME/AWAY', self.host)
+
