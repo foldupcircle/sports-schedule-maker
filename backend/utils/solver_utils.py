@@ -1,7 +1,7 @@
 # import gurobipy as gp
 # from gurobipy import GRB
-
-# from backend.utils.debug import debug
+from typing import List
+from backend.utils.debug import debug
 
 def print_tupledict(name, tuple_dict):
     # Assuming x is your tupledict with two indices, e.g., x[i, j]
@@ -30,3 +30,43 @@ def print_tupledict(name, tuple_dict):
     for row, matrix_row in zip(rows, matrix):
         print(f"{row}:  ", "  |  ".join(map(str, matrix_row)))
     print()
+
+def create_per_team_matchups(matchup_indices: List[List[int]]):
+    per_team_matchups = {}
+    for matchup in matchup_indices:
+        for i, num in enumerate(matchup):
+            if num not in per_team_matchups:
+                per_team_matchups[num] = [[], []]
+            per_team_matchups[num][0].append(matchup[1-i])
+            per_team_matchups[num][1].append(i)
+    return per_team_matchups
+
+def process_per_team_matchups(per_team_matchups):
+    # Home/Away Alteration, Sorting, and Adding BYE Week based on team number
+    for key in per_team_matchups.keys():
+        # Home/Away Alteration
+        list1 = per_team_matchups[key][0]
+        list2 = per_team_matchups[key][1]
+        for i in range(len(list1)):
+            if list2[i] == 0:
+                list1[i] += 32
+
+        # Add BYE Week and Set to Original Dict
+        list1.append(-1)
+        list2.append(0)
+        per_team_matchups[key][0] = list1
+        per_team_matchups[key][1] = list2
+
+        # Sorting
+        zipped_lists = list(zip(per_team_matchups[key][0], per_team_matchups[key][1]))
+        zipped_lists.sort()
+        sorted_list1, sorted_list2 = zip(*zipped_lists)
+        sorted_list1 = list(sorted_list1)
+        sorted_list2 = list(sorted_list2)
+        per_team_matchups[key][0] = sorted_list1
+        per_team_matchups[key][1] = sorted_list2
+
+        # Print Final Output
+        debug(per_team_matchups[key][0])
+        debug(per_team_matchups[key][1])
+    return per_team_matchups
