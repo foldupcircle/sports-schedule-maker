@@ -120,7 +120,7 @@ class Solver():
     
     def solve(self):
         # Solve based on constraints and cost defined earlier
-        self.m.Params.TimeLimit = 100
+        # self.m.Params.TimeLimit = 100
         self.m.optimize()
 
         # Print Results, assuming x is your tupledict
