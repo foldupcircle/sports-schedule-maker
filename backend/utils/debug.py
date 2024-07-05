@@ -26,18 +26,22 @@ white = (255, 255, 255)
 black = (0, 0, 0)
 
 MAIN_COLORS = {name: light_blue_1 for name in ['main']}
-TEAM_COLORS = {f'Team.{name}': light_red_2 for name in ['__init__', '_set_conference', '_set_inter_conference_division', '_set_intra_conference_division']}
+TEAM_COLORS = {f'Team.{name}': light_red_2 for name in ['__init__', '_set_conference', '_set_inter_conference_division', 
+                                                        '_set_intra_conference_division']}
 STADIUM_COLORS = {f'Stadium.{name}': light_red_2 for name in ['__init__']}
 MATCHUPS_COLORS = {name: light_orange_1 for name in ['determine_matchups']}
-UTIL_COLORS = {name: yellow for name in ['convert_teams_to_dict', 'choose_league', 'check_matchup']}
-SOLVE_COLORS = {f'Solver.{name}': purple for name in ['__init__', 'solve', '_sort_matrix', '_add_constraints', '_add_cost']}
+MAIN_UTIL_COLORS = {name: yellow for name in ['convert_teams_to_dict', 'choose_league', 'check_matchup']}
+SOLVE_COLORS = {f'Solver.{name}': purple for name in ['__init__', 'solve', '_sort_matrix', '_add_constraints', '_add_cost', 
+                                                      '_add_prelim_matchup_constraints']}
+SOLVER_UTIL_COLORS = {name: green for name in ['print_tupledict', 'create_per_team_matchups', 'process_per_team_matchups']}
 
 COLORS = {}
 COLORS.update(MAIN_COLORS)
 COLORS.update(TEAM_COLORS)
 COLORS.update(STADIUM_COLORS)
 COLORS.update(MATCHUPS_COLORS)
-COLORS.update(UTIL_COLORS)
+COLORS.update(MAIN_UTIL_COLORS)
+COLORS.update(SOLVER_UTIL_COLORS)
 COLORS.update(SOLVE_COLORS)
 
 def rgb_to_ansi(rgb):
