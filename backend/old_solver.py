@@ -11,7 +11,7 @@ from backend.utils.debug import debug
 from backend.data.leagues import NFL_TEAMS_DICT
 from backend.utils.solver_utils import print_tupledict, create_per_team_matchups, process_per_team_matchups
 
-class Solver():
+class OldSolver():
     def __init__(self, total_games: int, matchups: List[Tuple[Team, Team]]) -> None:
         # Writing the solver for the NFL for now, will generalize later
 

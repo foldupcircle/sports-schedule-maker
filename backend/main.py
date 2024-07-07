@@ -6,7 +6,8 @@ import nfl_data_py as nfl
 
 from backend.generate_matchups import determine_matchups
 from backend.utils.debug import debug
-from backend.solver import Solver
+from backend.old_solver import OldSolver
+from backend.high_level_solver import HighLevelSolver
 
 def main():
     year = int(date.today().strftime('%Y'))
@@ -14,8 +15,7 @@ def main():
     # TODO: more after
     # Explore whether AI or optimization is better approach
     # Explore gurobi, or maybe use casadi :eyes:
-    solver = Solver(272, matchups)
-    solver.solve()
+    solver = HighLevelSolver(matchups)
     # debug(x_sol)
     # debug(np.round(M_sol))
 

@@ -1,6 +1,6 @@
 # import gurobipy as gp
 # from gurobipy import GRB
-from typing import List
+from typing import List, Tuple
 from backend.utils.debug import debug
 
 def print_tupledict(name, tuple_dict):
@@ -30,6 +30,20 @@ def print_tupledict(name, tuple_dict):
     for row, matrix_row in zip(rows, matrix):
         print(f"{row}:  ", "  |  ".join(map(str, matrix_row)))
     print()
+
+def create_matchup_tuplelist(matchups: List[Tuple[int, int]]) -> List[Tuple[int, int, int]]:
+    res = []
+    
+    for week in range(18):
+        # Add all matchups with all possible weeks
+        for matchup in matchups:
+            res.append((matchup[0], matchup[1], week))
+
+        # Add bye week possibilities with the following format: (team, -1, week)
+        for team in range(32):
+            res.append((team, -1, week))
+
+    return res
 
 def create_per_team_matchups(matchup_indices: List[List[int]]):
     per_team_matchups = {}

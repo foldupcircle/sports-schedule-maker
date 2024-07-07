@@ -49,10 +49,3 @@ def check_matchup(schedule: pd.DataFrame, home_team_name: str, away_team_name: s
     elif len(game) == 1: return True
     else: raise ValueError('There must be 0 or 1 occurences of this game. Expected value received.')
     
-# def
-#     self.per_team_matchups = {}
-#         for matchup in self.matchup_indices:
-#             for num in matchup:
-#                 if num not in self.per_team_matchups.keys():
-#                     self.per_team_matchups[num] = []
-#                 self.per_team_matchups[num].append(matchup)
