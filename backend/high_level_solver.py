@@ -4,6 +4,7 @@ import numpy as np
 import scipy.sparse as sp
 from typing import List, Tuple
 from pprint import pprint
+from math import e
 
 from backend.data.solver_help import nfl_teams_to_indices, indices_to_nfl_teams
 from backend.structure.team import Team
@@ -27,17 +28,28 @@ class HighLevelSolver():
         self.games = self.m.addVars(self.all_games, vtype=GRB.BINARY) # Variables for all possible games
         self.bv = self.m.addMVar((2, 8), vtype=GRB.BINARY) # Helper binaries for 2, 4, 6 week bye week constraint
 
+    def _set_weights(self, travel: float, 
+                     three_game_road_trip: float, 
+                     two_games_start: float,
+                     two_games_finish: float,
+                     road_games_against_bye: float,
+                     well_spread_division_series: float):
+        self.travel_weight = travel
+        self.three_game_road_trip_weight = three_game_road_trip
+        self.two_games_finish_weight = two_games_finish
+        self.two_games_start_weight = two_games_start
+        self.road_games_against_bye_weight = road_games_against_bye
+        self.well_spread_division_series_weight = well_spread_division_series
+
+    def _set_helpers(self):
+        self.sigmoid_2_5 = lambda x: 1 / (1 + e^(-10000(x-2.5)))
+        self.two_game_formula = lambda x, y: 1 - ((x - y)**2)
+
     def _add_cost(self):
         # Weights
-        travel_weight = 1
-        three_game_road_trip_weight = 10
-        two_games_finish_weight = 5
-        two_games_start = 5
-        road_games_against_bye_weight = 5
-        well_spread_division_series_weight = 1
         cost = gp.LinExpr()
         for team in range(32):
-            cost += self.games.sum('*', team) # TODO: According to Figma
+            cost += self.games.sum('*', team)
             
         self.m.setObjective(cost, GRB.MINIMIZE)
 
@@ -47,13 +59,13 @@ class HighLevelSolver():
 
     def _add_matchup_played_constraints(self):
         # Each matchup MUST be played once and only once
-        self.m.addConstrs(self.games.sum(i, j, '*') for i, j in self.all_games)
+        self.m.addConstrs(self.games.sum(i, j, '*') == 1 for i, j in self.all_games)
 
         # Each Week MUST have 16 Games (BYEs Included)
         self.m.addConstrs(self.games.sum('*', '*', i) == 16 for i in range(18))
 
         # Each Team MUST play one and only one game every week
-        self.m.addConstrs(self.games.sum('*', i, j) + self.games.sum(i, '*', j) for i in range(32) for j in range(18))
+        self.m.addConstrs(self.games.sum('*', i, j) + self.games.sum(i, '*', j) == 1 for i in range(32) for j in range(18))
 
         # Last Week is all Divisional Games, Getting all divsional matchups
         division_matchups = []
