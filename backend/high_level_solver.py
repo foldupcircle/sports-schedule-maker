@@ -45,11 +45,41 @@ class HighLevelSolver():
         self.sigmoid_2_5 = lambda x: 1 / (1 + e^(-10000(x-2.5)))
         self.two_game_formula = lambda x, y: 1 - ((x - y)**2)
 
+    def _get_location(self, team_index: int) -> Tuple[float, float]:
+        return NFL_TEAMS_DICT[indices_to_nfl_teams[team_index]].home_stadium.location
+
     def _add_cost(self):
         # Weights
         cost = gp.LinExpr()
         for team in range(32):
-            cost += self.games.sum('*', team)
+            # Travel Time Calculation
+            travel_time = 0
+            for w in range(17):
+                for i, j, k in self.all_games[:, team, w]:
+                    # TODO: TBD, trw thing
+                    pass
+
+                # 3-game Road Trip Cost
+                if w <= 16:
+                    sum_three_games = self.games.sum('*', team, w)
+                    sum_three_games += self.games.sum('*', team, w + 1)
+                    sum_three_games += self.games.sum('*', team, w + 2)
+                    cost += self.three_game_road_trip_weight * self.sigmoid_2_5(sum_three_games)
+
+                # Min teams playing road gm. ag. teams coming off bye
+                first_game = self.games.sum(team, -1, w)
+                second_game = self.games.sum(team, '*', w)
+                cost += self.road_games_against_bye_weight * self.two_game_formula(first_game, second_game)
+
+            # 2-game road start
+            first_game = self.games.sum('*', team, 0)
+            second_game = self.games.sum('*', team, 1)
+            cost += self.two_games_start_weight * self.two_game_formula(first_game, second_game)
+
+            # 2-game road finish
+            first_game = self.games.sum('*', team, 16)
+            second_game = self.games.sum('*', team, 17)
+            cost += self.two_games_finish_weight * self.two_game_formula(first_game, second_game)
             
         self.m.setObjective(cost, GRB.MINIMIZE)
 
