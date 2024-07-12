@@ -3,7 +3,7 @@ from gurobipy import GRB
 import numpy as np
 from typing import List, Tuple
 from pprint import pprint
-from math import exp
+from math import e
 
 from backend.data.solver_help import nfl_teams_to_indices, indices_to_nfl_teams
 from backend.structure.team import Team
@@ -35,15 +35,16 @@ class HighLevelSolver():
         self.bv = self.m.addMVar((2, 8), vtype=GRB.BINARY) # Helper binaries for 2, 4, 6 week bye week constraint
         
         self._set_helpers()
+        self._set_weights()
         self._add_constraints()
         self._add_cost()
 
-    def _set_weights(self, travel: float, 
-                     three_game_road_trip: float, 
-                     two_games_start: float,
-                     two_games_finish: float,
-                     road_games_against_bye: float,
-                     well_spread_division_series: float):
+    def _set_weights(self, travel: float=0.1, 
+                     three_game_road_trip: float=10, 
+                     two_games_start: float=1,
+                     two_games_finish: float=1,
+                     road_games_against_bye: float=1,
+                     well_spread_division_series: float=0.5):
         self.travel_weight = travel
         self.three_game_road_trip_weight = three_game_road_trip
         self.two_games_finish_weight = two_games_finish
@@ -52,33 +53,36 @@ class HighLevelSolver():
         self.well_spread_division_series_weight = well_spread_division_series
 
     def _set_helpers(self):
-        self.sigmoid_2_5 = lambda x: 1 / (1 + exp(-10000 * (x - 2.5)))
+        self.sigmoid_2_5 = lambda x: 1 / (1 + e**(-10000 * (x - 2.5)))
         self.two_game_formula = lambda x, y: 1 - ((x - y)**2)
 
-    def _get_distance(self, team, w):
-        potential_away_games = [game for game in self.all_games 
-                                if (game[0] == team or game[1] == team) and game[2] == w]
-        location_lat = 0
-        location_lon = 0
-        for home_team_idx, away_team_idx, _ in potential_away_games:
-            game_loc = get_team_home_stadium(home_team_idx)
-            var = self.games.select(home_team_idx, away_team_idx, w)[0]
-            location_lat += var * game_loc[0]
-            location_lon += var * game_loc[1]
-        return location_lat, location_lon
+    def _get_travel_distance(self, w, potential_games_this_week, potential_games_next_week):
+        
+        total_distance = 0
+        for home_team_idx1, away_team_idx1, _ in potential_games_this_week:
+            game_loc1 = get_team_home_stadium(home_team_idx1)
+            var1 = self.games.select(home_team_idx1, away_team_idx1, w)[0]
+            for home_team_idx2, away_team_idx2, _ in potential_games_next_week:
+                game_loc2 = get_team_home_stadium(home_team_idx2)
+                var2 = self.games.select(home_team_idx2, away_team_idx2, w + 1)[0]
+                distance = haversine(game_loc1, game_loc2)
+                total_distance += distance * self.two_game_formula(var1, var2)
+        return total_distance
 
     def _add_cost(self):
         cost = gp.LinExpr()
         for team in range(32):
             # Travel Time Calculation
             travel_distance = 0
-            current_loc = self._get_location(team, 0)
+            potential_games_this_week = [game for game in self.all_games 
+                if (game[0] == team or game[1] == team) and game[2] == 0]
             for w in range(17):
-                next_loc = self._get_location(team, w)
-                travel_distance += haversine(current_loc, next_loc)
-
-                # Set the current location to next week's location for next iteration
-                current_loc = next_loc
+                potential_games_next_week = [game for game in self.all_games 
+                    if (game[0] == team or game[1] == team) and game[2] == w + 1]
+                travel_distance += self._get_travel_distance(w, 
+                                                             potential_games_this_week, 
+                                                             potential_games_next_week)
+                potential_games_this_week = potential_games_next_week
 
                 # 3-game Road Trip Cost
                 if w <= 16:
