@@ -1,16 +1,21 @@
 import gurobipy as gp
 from gurobipy import GRB
 import numpy as np
-import scipy.sparse as sp
 from typing import List, Tuple
 from pprint import pprint
-from math import e
+from math import exp
 
 from backend.data.solver_help import nfl_teams_to_indices, indices_to_nfl_teams
 from backend.structure.team import Team
 from backend.utils.debug import debug
 from backend.data.leagues import NFL_TEAMS_DICT
-from backend.utils.solver_utils import print_tupledict, create_matchup_tuplelist
+from backend.utils.solver_utils import (
+    print_tupledict, 
+    print_tupledict_3, 
+    create_matchup_tuplelist, 
+    haversine, 
+    get_team_home_stadium
+)
 
 class HighLevelSolver():
     def __init__(self, matchups: List[Tuple[Team, Team]], early_bye_week_teams: List[str]) -> None:
@@ -19,7 +24,8 @@ class HighLevelSolver():
                                           nfl_teams_to_indices[m[1].team_name]] for m in matchups]))
 
         self.all_games = gp.tuplelist(create_matchup_tuplelist(self.matchup_indices))
-        debug(self.all_games)
+        debug(len(self.all_games))
+        # debug(self.all_games)
 
         self.early_bye_teams = [nfl_teams_to_indices[team_name] for team_name in early_bye_week_teams]
         debug(self.early_bye_teams)
@@ -27,6 +33,10 @@ class HighLevelSolver():
         # Add Gurobi Variables
         self.games = self.m.addVars(self.all_games, vtype=GRB.BINARY) # Variables for all possible games
         self.bv = self.m.addMVar((2, 8), vtype=GRB.BINARY) # Helper binaries for 2, 4, 6 week bye week constraint
+        
+        self._set_helpers()
+        self._add_constraints()
+        self._add_cost()
 
     def _set_weights(self, travel: float, 
                      three_game_road_trip: float, 
@@ -42,22 +52,33 @@ class HighLevelSolver():
         self.well_spread_division_series_weight = well_spread_division_series
 
     def _set_helpers(self):
-        self.sigmoid_2_5 = lambda x: 1 / (1 + e^(-10000(x-2.5)))
+        self.sigmoid_2_5 = lambda x: 1 / (1 + exp(-10000 * (x - 2.5)))
         self.two_game_formula = lambda x, y: 1 - ((x - y)**2)
 
-    def _get_location(self, team_index: int) -> Tuple[float, float]:
-        return NFL_TEAMS_DICT[indices_to_nfl_teams[team_index]].home_stadium.location
+    def _get_distance(self, team, w):
+        potential_away_games = [game for game in self.all_games 
+                                if (game[0] == team or game[1] == team) and game[2] == w]
+        location_lat = 0
+        location_lon = 0
+        for home_team_idx, away_team_idx, _ in potential_away_games:
+            game_loc = get_team_home_stadium(home_team_idx)
+            var = self.games.select(home_team_idx, away_team_idx, w)[0]
+            location_lat += var * game_loc[0]
+            location_lon += var * game_loc[1]
+        return location_lat, location_lon
 
     def _add_cost(self):
-        # Weights
         cost = gp.LinExpr()
         for team in range(32):
             # Travel Time Calculation
-            travel_time = 0
+            travel_distance = 0
+            current_loc = self._get_location(team, 0)
             for w in range(17):
-                for i, j, k in self.all_games[:, team, w]:
-                    # TODO: TBD, trw thing
-                    pass
+                next_loc = self._get_location(team, w)
+                travel_distance += haversine(current_loc, next_loc)
+
+                # Set the current location to next week's location for next iteration
+                current_loc = next_loc
 
                 # 3-game Road Trip Cost
                 if w <= 16:
@@ -81,6 +102,9 @@ class HighLevelSolver():
             second_game = self.games.sum('*', team, 17)
             cost += self.two_games_finish_weight * self.two_game_formula(first_game, second_game)
             
+            # Add travel to cost
+            cost += self.travel_weight * travel_distance
+
         self.m.setObjective(cost, GRB.MINIMIZE)
 
     def _add_constraints(self):
@@ -89,7 +113,7 @@ class HighLevelSolver():
 
     def _add_matchup_played_constraints(self):
         # Each matchup MUST be played once and only once
-        self.m.addConstrs(self.games.sum(i, j, '*') == 1 for i, j in self.all_games)
+        self.m.addConstrs(self.games.sum(i, j, '*') == 1 for i, j, _ in self.all_games)
 
         # Each Week MUST have 16 Games (BYEs Included)
         self.m.addConstrs(self.games.sum('*', '*', i) == 16 for i in range(18))
@@ -121,7 +145,8 @@ class HighLevelSolver():
         bye_weeks = [5, 6, 7, 9, 10, 11, 12, 14]
         for i in range(8):
             bin_sum = self.bv[:, i].sum().item()
-            self.m.addConstrs(self.games.sum('*', -1, bye_weeks[i]) == 30 - (2 * bin_sum))
+            debug(bye_weeks[i])
+            self.m.addConstr(self.games.sum('*', -1, bye_weeks[i] - 1) == (30 - (2 * bin_sum)))
 
         # Earliest bye week teams last year can’t get early bye this year (Week 5 is the earliest bye)
         self.m.addConstrs(self.games.sum(team, -1, 5) == 0 for team in self.early_bye_teams)
@@ -132,4 +157,4 @@ class HighLevelSolver():
 
     def solve(self):
         self.m.optimize()
-        print_tupledict('ALL MATCHUPS', self.games)
+        # print_tupledict_3('ALL MATCHUPS', self.games)
