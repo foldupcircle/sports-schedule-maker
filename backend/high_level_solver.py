@@ -86,10 +86,18 @@ class HighLevelSolver():
 
                 # 3-game Road Trip Cost
                 if w <= 16:
-                    sum_three_games = self.games.sum('*', team, w)
-                    sum_three_games += self.games.sum('*', team, w + 1)
-                    sum_three_games += self.games.sum('*', team, w + 2)
-                    cost += self.three_game_road_trip_weight * self.sigmoid_2_5(sum_three_games)
+                    # Check if First 2 are consectutive
+                    x = self.games.sum('*', team, w)
+                    y = self.games.sum('*', team, w + 1)
+                    print(type(x))
+                    print(type(self.two_game_formula(x, y)))
+                    sum_three_games = self.two_game_formula(x, y)
+
+                    # Check if last 2 are consectutive
+                    x = self.games.sum('*', team, w + 1)
+                    y = self.games.sum('*', team, w + 2)
+                    sum_three_games *= self.two_game_formula(x, y)
+                    cost += self.three_game_road_trip_weight * sum_three_games
 
                 # Min teams playing road gm. ag. teams coming off bye
                 first_game = self.games.sum(team, -1, w)
