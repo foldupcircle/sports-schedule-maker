@@ -1,8 +1,8 @@
 import math
 from typing import List, Tuple
-from backend.utils.debug import debug
-from backend.data.leagues import NFL_TEAMS_DICT
-from backend.data.solver_help import indices_to_nfl_teams
+from utils.debug import debug
+from data.leagues import NFL_TEAMS_DICT
+from data.solver_help import indices_to_nfl_teams
 
 def print_tupledict(name, tuple_dict):
     # Assuming x is your tupledict with two indices, e.g., x[i, j]

@@ -4,10 +4,10 @@ import numpy as np
 import pandas as pd
 import nfl_data_py as nfl
 
-from backend.generate_matchups import determine_matchups
-from backend.utils.debug import debug
-from backend.old_solver import OldSolver
-from backend.high_level_solver import HighLevelSolver
+from generate_matchups import determine_matchups
+from utils.debug import debug
+from old_solver import OldSolver
+from high_level_solver import HighLevelSolver
 
 def main():
     year = int(date.today().strftime('%Y'))

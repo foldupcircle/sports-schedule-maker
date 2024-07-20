@@ -5,11 +5,11 @@ import scipy.sparse as sp
 from typing import List, Tuple
 from pprint import pprint
 
-from backend.data.solver_help import nfl_teams_to_indices, indices_to_nfl_teams
-from backend.structure.team import Team
-from backend.utils.debug import debug
-from backend.data.leagues import NFL_TEAMS_DICT
-from backend.utils.solver_utils import print_tupledict, create_per_team_matchups, process_per_team_matchups
+from data.solver_help import nfl_teams_to_indices, indices_to_nfl_teams
+from structure.team import Team
+from utils.debug import debug
+from data.leagues import NFL_TEAMS_DICT
+from utils.solver_utils import print_tupledict, create_per_team_matchups, process_per_team_matchups
 
 class OldSolver():
     def __init__(self, total_games: int, matchups: List[Tuple[Team, Team]]) -> None:

@@ -5,11 +5,11 @@ from typing import List, Tuple
 from pprint import pprint
 from math import e
 
-from backend.data.solver_help import nfl_teams_to_indices, indices_to_nfl_teams
-from backend.structure.team import Team
-from backend.utils.debug import debug
-from backend.data.leagues import NFL_TEAMS_DICT
-from backend.utils.solver_utils import (
+from data.solver_help import nfl_teams_to_indices, indices_to_nfl_teams
+from structure.team import Team
+from utils.debug import debug
+from data.leagues import NFL_TEAMS_DICT
+from utils.solver_utils import (
     print_tupledict, 
     print_tupledict_3, 
     create_matchup_tuplelist, 
@@ -33,7 +33,7 @@ class HighLevelSolver():
         # Add Gurobi Variables
         self.games = self.m.addVars(self.all_games, vtype=GRB.BINARY) # Variables for all possible games
         self.bv = self.m.addMVar((2, 8), vtype=GRB.BINARY) # Helper binaries for 2, 4, 6 week bye week constraint
-        
+        self.b3 = self.m.addMVar((32, 15), vtype=GRB.BINARY) # Helper binaries for 3-game road trip cost
         self._set_helpers()
         self._set_weights()
         self._add_constraints()
@@ -57,7 +57,6 @@ class HighLevelSolver():
         self.two_game_formula = lambda x, y: 1 - ((x - y)**2)
 
     def _get_travel_distance(self, w, potential_games_this_week, potential_games_next_week):
-        
         total_distance = 0
         for home_team_idx1, away_team_idx1, _ in potential_games_this_week:
             game_loc1 = get_team_home_stadium(home_team_idx1)
@@ -85,34 +84,24 @@ class HighLevelSolver():
                 potential_games_this_week = potential_games_next_week
 
                 # 3-game Road Trip Cost
-                if w <= 16:
-                    # Check if First 2 are consectutive
-                    x = self.games.sum('*', team, w)
-                    y = self.games.sum('*', team, w + 1)
-                    print(type(x))
-                    print(type(self.two_game_formula(x, y)))
-                    sum_three_games = self.two_game_formula(x, y)
+                # if w >= 1 and w <= 15:
+                #     # Check if First 2 are consectutive road
+                #     cost += self.three_game_road_trip_weight * self.b3[team, w - 1].item()
 
-                    # Check if last 2 are consectutive
-                    x = self.games.sum('*', team, w + 1)
-                    y = self.games.sum('*', team, w + 2)
-                    sum_three_games *= self.two_game_formula(x, y)
-                    cost += self.three_game_road_trip_weight * sum_three_games
-
-                # Min teams playing road gm. ag. teams coming off bye
-                first_game = self.games.sum(team, -1, w)
-                second_game = self.games.sum(team, '*', w)
-                cost += self.road_games_against_bye_weight * self.two_game_formula(first_game, second_game)
+                # # Min teams playing road gm. ag. teams coming off bye
+                # first_game = self.games.sum(team, -1, w)
+                # second_game = self.games.sum(team, '*', w+1)
+                # cost += self.road_games_against_bye_weight * (first_game * second_game)
 
             # 2-game road start
             first_game = self.games.sum('*', team, 0)
             second_game = self.games.sum('*', team, 1)
-            cost += self.two_games_start_weight * self.two_game_formula(first_game, second_game)
+            cost += self.two_games_start_weight * (first_game * second_game)
 
             # 2-game road finish
             first_game = self.games.sum('*', team, 16)
             second_game = self.games.sum('*', team, 17)
-            cost += self.two_games_finish_weight * self.two_game_formula(first_game, second_game)
+            cost += self.two_games_finish_weight * (first_game * second_game)
             
             # Add travel to cost
             cost += self.travel_weight * travel_distance
@@ -162,7 +151,20 @@ class HighLevelSolver():
 
         # Earliest bye week teams last year can’t get early bye this year (Week 5 is the earliest bye)
         self.m.addConstrs(self.games.sum(team, -1, 5) == 0 for team in self.early_bye_teams)
-        
+    
+    def three_game_road_trip_contraints(self):
+        for team in range(32):
+            for w in range(15):
+                x1 = self.games.sum('*', team, w)
+                x2 = self.games.sum('*', team, w + 1)
+                x3 = self.games.sum('*', team, w + 2)
+                b = self.b3[team, w]
+                print(type(b))
+                self.m.addConstr(b <= x1, "c1")
+                self.m.addConstr(b <= x2, "c2")
+                self.m.addConstr(b <= x3, "c3")
+                self.m.addConstr(b >= x1 + x2 + x3 - 2, "c4")
+
     def _sort_matrix(self, mat: np.array) -> np.array:
         sorted_mat = np.vstack((sorted([col for col in mat], key=lambda x: x[0])))
         return sorted_mat
