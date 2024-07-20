@@ -40,27 +40,27 @@ class HighLevelSolver():
         self._add_cost()
 
     def _prune_matchups(self, matchups: List[Tuple[int, int, int]]):
-        # all_games = []
+        all_games = []
 
-        # non_bye_weeks = [1, 2, 3, 4, 8, 13, 15, 16, 17, 18]
-        # for match in matchups:
-        #     # remove all bye week matchups for non-bye weeks
-        #     if match[1] == -1 and (match[2] + 1) in non_bye_weeks:
-        #         continue
+        non_bye_weeks = [1, 2, 3, 4, 8, 13, 15, 16, 17, 18]
+        for match in matchups:
+            # # remove all bye week matchups for non-bye weeks
+            # if match[1] == -1 and (match[2] + 1) in non_bye_weeks:
+            #     continue
 
-        #     # remove all early bye week teams from last season to have an early bye this season
-        #     if (match[1] == -1) and (match[0] in self.early_bye_teams) and match[2] == 4:
-        #         continue
+            # remove all early bye week teams from last season to have an early bye this season
+            if (match[1] == -1) and (match[0] in self.early_bye_teams) and match[2] == 4:
+                continue
             
-        #     # remove all non-div games for the last week
-        #     if match[2] == 17:
-        #         team1_div = NFL_TEAMS_DICT[indices_to_nfl_teams[match[0]]].division
-        #         team2_div = NFL_TEAMS_DICT[indices_to_nfl_teams[match[1]]].division
-        #         if team1_div != team2_div:
-        #             continue
+            # remove all non-div games for the last week
+            # if match[2] == 17 and match[1] != -1:
+            #     team1_div = NFL_TEAMS_DICT[indices_to_nfl_teams[match[0]]].division
+            #     team2_div = NFL_TEAMS_DICT[indices_to_nfl_teams[match[1]]].division
+            #     if team1_div != team2_div:
+            #         continue
 
-        #     all_games.append(match)
-        all_games = matchups
+            all_games.append(match)
+        # all_games = matchups
         return all_games
 
     def _set_weights(self, travel: float=0.1, 
@@ -109,10 +109,10 @@ class HighLevelSolver():
                     cost += self.three_game_road_trip_weight * self.b3[team, w - 1].item()
 
                 # Min teams playing road gm. ag. teams coming off bye
-                # if w + 1 not in non_bye_weeks:
-                first_game = self.games.sum(team, -1, w)
-                second_game = self.games.sum(team, '*', w + 1)
-                cost += self.road_games_against_bye_weight * (first_game * second_game)
+                if w + 1 not in non_bye_weeks:
+                    first_game = self.games.sum(team, -1, w)
+                    second_game = self.games.sum(team, '*', w + 1)
+                    cost += self.road_games_against_bye_weight * (first_game * second_game)
 
             # 2-game road start
             first_game = self.games.sum('*', team, 0)
@@ -176,7 +176,7 @@ class HighLevelSolver():
             self.m.addConstr(self.games.sum('*', -1, bye_weeks[i] - 1) == ((2 * bin_sum) + 2))
 
         # Earliest bye week teams last year can’t get early bye this year (Week 5 is the earliest bye)
-        self.m.addConstrs(self.games.sum(team, -1, 4) == 0 for team in self.early_bye_teams)
+        # self.m.addConstrs(self.games.sum(team, -1, 4) == 0 for team in self.early_bye_teams)
     
     def _three_game_road_trip_contraints(self):
         for team in range(32):
