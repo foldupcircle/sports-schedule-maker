@@ -84,14 +84,14 @@ class HighLevelSolver():
                 potential_games_this_week = potential_games_next_week
 
                 # 3-game Road Trip Cost
-                # if w >= 1 and w <= 15:
-                #     # Check if First 2 are consectutive road
-                #     cost += self.three_game_road_trip_weight * self.b3[team, w - 1].item()
+                if w >= 1 and w <= 15:
+                    # Check if First 2 are consectutive road
+                    cost += self.three_game_road_trip_weight * self.b3[team, w - 1].item()
 
-                # # Min teams playing road gm. ag. teams coming off bye
-                # first_game = self.games.sum(team, -1, w)
-                # second_game = self.games.sum(team, '*', w+1)
-                # cost += self.road_games_against_bye_weight * (first_game * second_game)
+                # Min teams playing road gm. ag. teams coming off bye
+                first_game = self.games.sum(team, -1, w)
+                second_game = self.games.sum(team, '*', w + 1)
+                cost += self.road_games_against_bye_weight * (first_game * second_game)
 
             # 2-game road start
             first_game = self.games.sum('*', team, 0)
@@ -104,20 +104,26 @@ class HighLevelSolver():
             cost += self.two_games_finish_weight * (first_game * second_game)
             
             # Add travel to cost
-            cost += self.travel_weight * travel_distance
-
+            # cost += self.travel_weight * travel_distance # this is mesing up cost
         self.m.setObjective(cost, GRB.MINIMIZE)
 
     def _add_constraints(self):
-        self._add_bye_week_constraints()
         self._add_matchup_played_constraints()
+        self._add_bye_week_constraints()
+        self._three_game_road_trip_contraints()
 
     def _add_matchup_played_constraints(self):
         # Each matchup MUST be played once and only once
         self.m.addConstrs(self.games.sum(i, j, '*') == 1 for i, j, _ in self.all_games)
 
         # Each Week MUST have 16 Games (BYEs Included)
-        self.m.addConstrs(self.games.sum('*', '*', i) == 16 for i in range(18))
+        bye_weeks = [5, 6, 7, 9, 10, 11, 12, 14]
+        for i in range(18):
+            if i + 1 in bye_weeks: 
+                idx = bye_weeks.index(i + 1)
+                bin_sum = self.bv[:, idx].sum().item() + 1
+            else: bin_sum = 0
+            self.m.addConstr(self.games.sum('*', '*', i) == 16 + bin_sum)
 
         # Each Team MUST play one and only one game every week
         self.m.addConstrs(self.games.sum('*', i, j) + self.games.sum(i, '*', j) == 1 for i in range(32) for j in range(18))
@@ -137,7 +143,7 @@ class HighLevelSolver():
     def _add_bye_week_constraints(self):
         # Weeks 1, 2, 3, 4, 8, 13, 15, 16, 17, 18 CAN’T have bye weeks
         non_bye_weeks = [1, 2, 3, 4, 8, 13, 15, 16, 17, 18]
-        self.m.addConstrs(self.games.sum('*', -1, i) == 0 for i in non_bye_weeks)
+        self.m.addConstrs(self.games.sum('*', -1, i - 1) == 0 for i in non_bye_weeks)
 
         # Every team only has 1 bye week
         self.m.addConstrs(self.games.sum(i, -1, '*') == 1 for i in range(32))
@@ -146,20 +152,18 @@ class HighLevelSolver():
         bye_weeks = [5, 6, 7, 9, 10, 11, 12, 14]
         for i in range(8):
             bin_sum = self.bv[:, i].sum().item()
-            debug(bye_weeks[i])
-            self.m.addConstr(self.games.sum('*', -1, bye_weeks[i] - 1) == (30 - (2 * bin_sum)))
+            self.m.addConstr(self.games.sum('*', -1, bye_weeks[i] - 1) == ((2 * bin_sum) + 2))
 
         # Earliest bye week teams last year can’t get early bye this year (Week 5 is the earliest bye)
-        self.m.addConstrs(self.games.sum(team, -1, 5) == 0 for team in self.early_bye_teams)
+        self.m.addConstrs(self.games.sum(team, -1, 4) == 0 for team in self.early_bye_teams)
     
-    def three_game_road_trip_contraints(self):
+    def _three_game_road_trip_contraints(self):
         for team in range(32):
             for w in range(15):
                 x1 = self.games.sum('*', team, w)
                 x2 = self.games.sum('*', team, w + 1)
                 x3 = self.games.sum('*', team, w + 2)
                 b = self.b3[team, w]
-                print(type(b))
                 self.m.addConstr(b <= x1, "c1")
                 self.m.addConstr(b <= x2, "c2")
                 self.m.addConstr(b <= x3, "c3")

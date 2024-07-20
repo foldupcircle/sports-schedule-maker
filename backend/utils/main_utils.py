@@ -1,10 +1,10 @@
 from typing import List, Tuple, Dict
 import pandas as pd
 
-from backend.structure.team import Team
-from backend.data.nfl_teams_abb import nfl_teams_abb
-from backend.utils.debug import debug
-from backend.data.leagues import NFL_TEAMS_DICT, NBA_TEAMS_DICT, MLB_TEAMS_DICT, IPL_TEAMS_DICT, EPL_TEAMS_DICT
+from structure.team import Team
+from data.nfl_teams_abb import nfl_teams_abb
+from utils.debug import debug
+from data.leagues import NFL_TEAMS_DICT, NBA_TEAMS_DICT, MLB_TEAMS_DICT, IPL_TEAMS_DICT, EPL_TEAMS_DICT
 
 def convert_teams_to_dict(teams: List[Team]):
     team_arr = [{'team_name': team.team_name, 
