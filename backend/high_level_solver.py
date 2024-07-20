@@ -20,24 +20,48 @@ from utils.solver_utils import (
 class HighLevelSolver():
     def __init__(self, matchups: List[Tuple[Team, Team]], early_bye_week_teams: List[str]) -> None:
         self.m = gp.Model('mip1')
+        self.m.setParam('Seed', 1234)
         self.matchup_indices = self._sort_matrix(np.array([[nfl_teams_to_indices[m[0].team_name], 
                                           nfl_teams_to_indices[m[1].team_name]] for m in matchups]))
 
-        self.all_games = gp.tuplelist(create_matchup_tuplelist(self.matchup_indices))
-        debug(len(self.all_games))
-        # debug(self.all_games)
-
         self.early_bye_teams = [nfl_teams_to_indices[team_name] for team_name in early_bye_week_teams]
         debug(self.early_bye_teams)
+        full_tuplelist = create_matchup_tuplelist(self.matchup_indices)
+        self.all_games = gp.tuplelist(self._prune_matchups(full_tuplelist))
+        debug(len(self.all_games))
+        # debug(self.all_games)
 
         # Add Gurobi Variables
         self.games = self.m.addVars(self.all_games, vtype=GRB.BINARY) # Variables for all possible games
         self.bv = self.m.addMVar((2, 8), vtype=GRB.BINARY) # Helper binaries for 2, 4, 6 week bye week constraint
         self.b3 = self.m.addMVar((32, 15), vtype=GRB.BINARY) # Helper binaries for 3-game road trip cost
-        self._set_helpers()
         self._set_weights()
         self._add_constraints()
         self._add_cost()
+
+    def _prune_matchups(self, matchups: List[Tuple[int, int, int]]):
+        # all_games = []
+
+        # non_bye_weeks = [1, 2, 3, 4, 8, 13, 15, 16, 17, 18]
+        # for match in matchups:
+        #     # remove all bye week matchups for non-bye weeks
+        #     if match[1] == -1 and (match[2] + 1) in non_bye_weeks:
+        #         continue
+
+        #     # remove all early bye week teams from last season to have an early bye this season
+        #     if (match[1] == -1) and (match[0] in self.early_bye_teams) and match[2] == 4:
+        #         continue
+            
+        #     # remove all non-div games for the last week
+        #     if match[2] == 17:
+        #         team1_div = NFL_TEAMS_DICT[indices_to_nfl_teams[match[0]]].division
+        #         team2_div = NFL_TEAMS_DICT[indices_to_nfl_teams[match[1]]].division
+        #         if team1_div != team2_div:
+        #             continue
+
+        #     all_games.append(match)
+        all_games = matchups
+        return all_games
 
     def _set_weights(self, travel: float=0.1, 
                      three_game_road_trip: float=10, 
@@ -52,10 +76,6 @@ class HighLevelSolver():
         self.road_games_against_bye_weight = road_games_against_bye
         self.well_spread_division_series_weight = well_spread_division_series
 
-    def _set_helpers(self):
-        self.sigmoid_2_5 = lambda x: 1 / (1 + e**(-10000 * (x - 2.5)))
-        self.two_game_formula = lambda x, y: 1 - ((x - y)**2)
-
     def _get_travel_distance(self, w, potential_games_this_week, potential_games_next_week):
         total_distance = 0
         for home_team_idx1, away_team_idx1, _ in potential_games_this_week:
@@ -65,11 +85,12 @@ class HighLevelSolver():
                 game_loc2 = get_team_home_stadium(home_team_idx2)
                 var2 = self.games.select(home_team_idx2, away_team_idx2, w + 1)[0]
                 distance = haversine(game_loc1, game_loc2)
-                total_distance += distance * self.two_game_formula(var1, var2)
+                total_distance += distance * (var1 * var2)
         return total_distance
 
     def _add_cost(self):
         cost = gp.LinExpr()
+        non_bye_weeks = [1, 2, 3, 4, 8, 13, 15, 16, 17, 18]
         for team in range(32):
             # Travel Time Calculation
             travel_distance = 0
@@ -85,10 +106,10 @@ class HighLevelSolver():
 
                 # 3-game Road Trip Cost
                 if w >= 1 and w <= 15:
-                    # Check if First 2 are consectutive road
                     cost += self.three_game_road_trip_weight * self.b3[team, w - 1].item()
 
                 # Min teams playing road gm. ag. teams coming off bye
+                # if w + 1 not in non_bye_weeks:
                 first_game = self.games.sum(team, -1, w)
                 second_game = self.games.sum(team, '*', w + 1)
                 cost += self.road_games_against_bye_weight * (first_game * second_game)
@@ -128,7 +149,7 @@ class HighLevelSolver():
         # Each Team MUST play one and only one game every week
         self.m.addConstrs(self.games.sum('*', i, j) + self.games.sum(i, '*', j) == 1 for i in range(32) for j in range(18))
 
-        # Last Week is all Divisional Games, Getting all divsional matchups
+        # Last Week is all Divisional Games, Getting all divisional matchups
         division_matchups = []
         for matchup in self.matchup_indices:
             team1_div = NFL_TEAMS_DICT[indices_to_nfl_teams[matchup[0]]].division
