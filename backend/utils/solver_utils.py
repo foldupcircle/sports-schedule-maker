@@ -1,5 +1,6 @@
 import math
 from typing import List, Tuple
+import gurobipy as gp
 from utils.debug import debug
 from data.leagues import NFL_TEAMS_DICT
 from data.solver_help import indices_to_nfl_teams
@@ -133,3 +134,30 @@ def haversine(loc1: Tuple[float, float], loc2: Tuple[float, float]) -> float:
     r = 3956 # radius of Earth in miles
     distance = c * r
     return distance
+
+def calculate_interval_variance(model, event_times):
+    """
+    Calculate the variance of intervals between event times using Gurobi variables.
+
+    Parameters:
+    - model: Gurobi model
+    - event_times: List of Gurobi variables representing event times
+
+    Returns:
+    - variance: Gurobi quadratic expression representing the variance of intervals
+    """
+    n = len(event_times)
+    
+    if n < 2:
+        raise ValueError("There must be at least two event times to calculate variance.")
+    
+    # Calculate intervals between consecutive events
+    intervals = [event_times[i+1] - event_times[i] for i in range(n-1)]
+    
+    # Calculate the mean of intervals
+    mean_interval = gp.quicksum(intervals) / (n-1)
+    
+    # Calculate the variance of intervals
+    variance = gp.quicksum((interval - mean_interval) * (interval - mean_interval) for interval in intervals) / (n-1)
+    
+    return variance
