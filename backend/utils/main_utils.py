@@ -1,10 +1,10 @@
 from typing import List, Tuple, Dict
 import pandas as pd
 
-from backend.structure.team import Team
-from backend.data.nfl_teams_abb import nfl_teams_abb
-from backend.utils.debug import debug
-from backend.data.leagues import NFL_TEAMS_DICT, NBA_TEAMS_DICT, MLB_TEAMS_DICT, IPL_TEAMS_DICT, EPL_TEAMS_DICT
+from structure.team import Team
+from data.nfl_teams_abb import nfl_teams_abb
+from utils.debug import debug
+from data.leagues import NFL_TEAMS_DICT, NBA_TEAMS_DICT, MLB_TEAMS_DICT, IPL_TEAMS_DICT, EPL_TEAMS_DICT
 
 def convert_teams_to_dict(teams: List[Team]):
     team_arr = [{'team_name': team.team_name, 
@@ -49,10 +49,3 @@ def check_matchup(schedule: pd.DataFrame, home_team_name: str, away_team_name: s
     elif len(game) == 1: return True
     else: raise ValueError('There must be 0 or 1 occurences of this game. Expected value received.')
     
-# def
-#     self.per_team_matchups = {}
-#         for matchup in self.matchup_indices:
-#             for num in matchup:
-#                 if num not in self.per_team_matchups.keys():
-#                     self.per_team_matchups[num] = []
-#                 self.per_team_matchups[num].append(matchup)

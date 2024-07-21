@@ -4,9 +4,9 @@ import nfl_data_py as nfl
 from collections import defaultdict
 from pprint import pprint
 
-from backend.utils.debug import debug
-from backend.utils.main_utils import choose_league, check_matchup
-from backend.data.past_season_data import division_data, nfl_2024_17th_game_opponents
+from utils.debug import debug
+from utils.main_utils import choose_league, check_matchup
+from data.past_season_data import division_data, nfl_2024_17th_game_opponents
 
 def determine_matchups(league: str, year: int):
     '''
@@ -37,10 +37,10 @@ def determine_matchups(league: str, year: int):
     matchups = []
 
     # Schedules and Standings (These are used, don't delete)
-    standings_2020 = pd.read_csv('backend/data/2020_NFL_Standings_by_Division.csv')
-    standings_2021 = pd.read_csv('backend/data/2021_NFL_Standings_by_Division.csv')
-    standings_2022 = pd.read_csv('backend/data/2022_NFL_Standings_by_Division.csv')
-    standings_2023 = pd.read_csv('backend/data/2023_NFL_Standings_by_Division.csv')
+    standings_2020 = pd.read_csv('data/2020_NFL_Standings_by_Division.csv')
+    standings_2021 = pd.read_csv('data/2021_NFL_Standings_by_Division.csv')
+    standings_2022 = pd.read_csv('data/2022_NFL_Standings_by_Division.csv')
+    standings_2023 = pd.read_csv('data/2023_NFL_Standings_by_Division.csv')
     schedule_2023 = nfl.import_schedules([year - 1])
     schedule_2022 = nfl.import_schedules([year - 2])
     schedule_2021 = intra_conf_schedule

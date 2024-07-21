@@ -1,6 +1,6 @@
 import os
 
-LOG_MODE_FILE = 'backend/utils/log_mode.txt'
+LOG_MODE_FILE = 'utils/log_mode.txt'
 
 def set_log_mode(mode):
     with open(LOG_MODE_FILE, 'w') as f:

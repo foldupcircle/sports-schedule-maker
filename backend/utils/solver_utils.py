@@ -1,7 +1,9 @@
-# import gurobipy as gp
-# from gurobipy import GRB
-from typing import List
-from backend.utils.debug import debug
+import math
+from typing import List, Tuple
+import gurobipy as gp
+from utils.debug import debug
+from data.leagues import NFL_TEAMS_DICT
+from data.solver_help import indices_to_nfl_teams
 
 def print_tupledict(name, tuple_dict):
     # Assuming x is your tupledict with two indices, e.g., x[i, j]
@@ -30,6 +32,46 @@ def print_tupledict(name, tuple_dict):
     for row, matrix_row in zip(rows, matrix):
         print(f"{row}:  ", "  |  ".join(map(str, matrix_row)))
     print()
+
+def print_tupledict_3(name, tuple_dict):
+    # Assuming x is your tupledict with three indices, e.g., x[i, j, k]
+    x = tuple_dict
+
+    # Extract unique indices for rows, columns, and depth
+    rows = sorted(set(key[0] for key in x.keys()))
+    columns = sorted(set(key[1] for key in x.keys()))
+    depths = sorted(set(key[2] for key in x.keys()))
+
+    # Create a 3D matrix-like structure to hold the values
+    matrix = [[[0 for _ in depths] for _ in columns] for _ in rows]
+    
+    # Fill the matrix with the values from the tupledict
+    for (row, col, depth), val in x.items():
+        matrix[rows.index(row)][columns.index(col)][depths.index(depth)] = int(val.X)
+
+    # Print the 3D matrix
+    print("Name of TupleDict: ", name)
+    for depth in depths:
+        print(f"Depth: {depth}")
+        print("     ", "  |  ".join(map(str, columns)))
+        print("     " + "-" * (6 * len(columns) - 1))
+        for row, matrix_row in zip(rows, matrix):
+            print(f"{row}:  ", "  |  ".join(map(str, matrix_row[depths.index(depth)])))
+        print()
+
+def create_matchup_tuplelist(matchups: List[Tuple[int, int]]) -> List[Tuple[int, int, int]]:
+    res = []
+    
+    for week in range(18):
+        # Add all matchups with all possible weeks
+        for matchup in matchups:
+            res.append((matchup[0], matchup[1], week))
+
+        # Add bye week possibilities with the following format: (team, -1, week)
+        for team in range(32):
+            res.append((team, -1, week))
+
+    return res
 
 def create_per_team_matchups(matchup_indices: List[List[int]]):
     per_team_matchups = {}
@@ -70,3 +112,52 @@ def process_per_team_matchups(per_team_matchups):
         debug(per_team_matchups[key][0])
         debug(per_team_matchups[key][1])
     return per_team_matchups
+
+def get_team_home_stadium(team_index: int) -> Tuple[float, float]:
+    return NFL_TEAMS_DICT[indices_to_nfl_teams[team_index]].home_stadium.location
+
+def haversine(loc1: Tuple[float, float], loc2: Tuple[float, float]) -> float:
+    lon1 = loc1[0]
+    lat1 = loc1[1]
+    lon2 = loc2[0]
+    lat2 = loc2[1]
+
+    # Convert latitude and longitude from degrees to radians
+    lon1, lat1, lon2, lat2 = map(math.radians, [lon1, lat1, lon2, lat2])
+
+    # Haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
+    c = 2 * math.asin(math.sqrt(a))
+
+    r = 3956 # radius of Earth in miles
+    distance = c * r
+    return distance
+
+def calculate_interval_variance(model, event_times):
+    """
+    Calculate the variance of intervals between event times using Gurobi variables.
+
+    Parameters:
+    - model: Gurobi model
+    - event_times: List of Gurobi variables representing event times
+
+    Returns:
+    - variance: Gurobi quadratic expression representing the variance of intervals
+    """
+    n = len(event_times)
+    
+    if n < 2:
+        raise ValueError("There must be at least two event times to calculate variance.")
+    
+    # Calculate intervals between consecutive events
+    intervals = [event_times[i+1] - event_times[i] for i in range(n-1)]
+    
+    # Calculate the mean of intervals
+    mean_interval = gp.quicksum(intervals) / (n-1)
+    
+    # Calculate the variance of intervals
+    variance = gp.quicksum((interval - mean_interval) * (interval - mean_interval) for interval in intervals) / (n-1)
+    
+    return variance

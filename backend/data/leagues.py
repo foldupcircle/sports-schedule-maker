@@ -1,5 +1,5 @@
-from backend.structure.team import Team
-from backend.structure.stadium import Stadium
+from structure.team import Team
+from structure.stadium import Stadium
 
 NFL_TEAMS_DICT = {
     "Arizona Cardinals": Team("Arizona Cardinals", 500000, "NFC West", Stadium("State Farm Stadium", (33.5276, -112.2626))),

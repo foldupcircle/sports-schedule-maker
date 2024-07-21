@@ -1,7 +1,7 @@
 from datetime import date
 
-from backend.structure.stadium import Stadium
-from backend.data.past_season_data import division_data
+from structure.stadium import Stadium
+from data.past_season_data import division_data
 
 class Team():
     def __init__(self, team_name: str, fanbase: int, division: str, home_stadium: Stadium) -> None:

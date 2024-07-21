@@ -3,7 +3,7 @@ from typing import List, Optional
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 
-from backend.ai.ai_models import GPT3, GPT4
+from ai.ai_models import GPT3, GPT4
 
 constraint_prompt = ChatPromptTemplate.from_template(\
     "You are an agent with the sole purpose of creating matchups for sports league schedule making.\
