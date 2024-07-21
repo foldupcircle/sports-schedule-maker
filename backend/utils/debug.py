@@ -34,7 +34,17 @@ MAIN_UTIL_COLORS = {name: yellow for name in ['convert_teams_to_dict', 'choose_l
 OLD_SOLVER_COLORS = {f'OldSolver.{name}': purple for name in ['__init__', 'solve', '_sort_matrix', '_add_constraints', '_add_cost', 
                                                       '_add_prelim_matchup_constraints']}
 SOLVER_UTIL_COLORS = {name: green for name in ['print_tupledict', 'create_per_team_matchups', 'process_per_team_matchups']}
-HIGH_LEVEL_SOLVER_COLORS = {f'HighLevelSolver.{name}': blue for name in ['__init__', '_add_cost', '_add_constraints', 'solve']}
+HIGH_LEVEL_SOLVER_COLORS = {f'HighLevelSolver.{name}': blue for name in ['__init__', 
+                                                                         '_add_cost', 
+                                                                         '_add_constraints', 
+                                                                         'solve', 
+                                                                         '_set_weights',
+                                                                         '_prune_matchups', 
+                                                                         '_get_travel_distance',
+                                                                         '_add_matchup_played_constraints', 
+                                                                         '_add_bye_week_constraints',
+                                                                         '_three_game_road_trip_contraints',
+                                                                         '_sort_matrix']}
 
 
 COLORS = {}
@@ -45,6 +55,7 @@ COLORS.update(MATCHUPS_COLORS)
 COLORS.update(MAIN_UTIL_COLORS)
 COLORS.update(SOLVER_UTIL_COLORS)
 COLORS.update(OLD_SOLVER_COLORS)
+COLORS.update(HIGH_LEVEL_SOLVER_COLORS)
 
 def rgb_to_ansi(rgb):
     return '\033[38;2;{};{};{}m'.format(*rgb)

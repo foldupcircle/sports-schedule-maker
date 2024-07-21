@@ -63,7 +63,7 @@ class HighLevelSolver():
         # all_games = matchups
         return all_games
 
-    def _set_weights(self, travel: float=0.1, 
+    def _set_weights(self, travel: float=0.001, 
                      three_game_road_trip: float=10, 
                      two_games_start: float=1,
                      two_games_finish: float=1,
@@ -78,14 +78,22 @@ class HighLevelSolver():
 
     def _get_travel_distance(self, w, potential_games_this_week, potential_games_next_week):
         total_distance = 0
-        for home_team_idx1, away_team_idx1, _ in potential_games_this_week:
+        for home_team_idx1, away_team_idx1, week1 in potential_games_this_week:
+            if away_team_idx1 == -1: continue
+            if week1 != w: continue
             game_loc1 = get_team_home_stadium(home_team_idx1)
             var1 = self.games.select(home_team_idx1, away_team_idx1, w)[0]
-            for home_team_idx2, away_team_idx2, _ in potential_games_next_week:
+            for home_team_idx2, away_team_idx2, week2 in potential_games_next_week:
+                if away_team_idx2 == -1: continue
+                if week2 != w + 1: continue
                 game_loc2 = get_team_home_stadium(home_team_idx2)
                 var2 = self.games.select(home_team_idx2, away_team_idx2, w + 1)[0]
                 distance = haversine(game_loc1, game_loc2)
-                total_distance += distance * (var1 * var2)
+                # debug(distance)
+                coeff = int(self.travel_weight * distance)
+                if coeff == 0: continue
+                total_distance += coeff * (var1 * var2)
+                # debug(total_distance)
         return total_distance
 
     def _add_cost(self):
@@ -93,7 +101,7 @@ class HighLevelSolver():
         non_bye_weeks = [1, 2, 3, 4, 8, 13, 15, 16, 17, 18]
         for team in range(32):
             # Travel Time Calculation
-            travel_distance = 0
+            travel_distance = gp.LinExpr()
             potential_games_this_week = [game for game in self.all_games 
                 if (game[0] == team or game[1] == team) and game[2] == 0]
             for w in range(17):
@@ -125,7 +133,7 @@ class HighLevelSolver():
             cost += self.two_games_finish_weight * (first_game * second_game)
             
             # Add travel to cost
-            # cost += self.travel_weight * travel_distance # this is mesing up cost
+            # cost += travel_distance # this is messing up cost
         self.m.setObjective(cost, GRB.MINIMIZE)
 
     def _add_constraints(self):
