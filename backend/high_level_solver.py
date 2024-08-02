@@ -12,6 +12,7 @@ from data.leagues import NFL_TEAMS_DICT
 from utils.solver_utils import (
     print_tupledict, 
     print_tupledict_3, 
+    print_tuplelist,
     create_matchup_tuplelist, 
     haversine, 
     get_team_home_stadium
@@ -40,6 +41,7 @@ class HighLevelSolver():
         self._add_cost()
 
     def _prune_matchups(self, matchups: List[Tuple[int, int, int]]):
+
         all_games = []
 
         non_bye_weeks = [1, 2, 3, 4, 8, 13, 15, 16, 17, 18]
@@ -204,4 +206,4 @@ class HighLevelSolver():
 
     def solve(self):
         self.m.optimize()
-        # print_tupledict_3('ALL MATCHUPS', self.games)
+        # print_tuplelist(self.all_games, self.games, [0, 1, 2])

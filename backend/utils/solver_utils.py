@@ -1,5 +1,6 @@
 import math
 from typing import List, Tuple
+from collections import Counter
 import gurobipy as gp
 from utils.debug import debug
 from data.leagues import NFL_TEAMS_DICT
@@ -161,3 +162,31 @@ def calculate_interval_variance(model, event_times):
     variance = gp.quicksum((interval - mean_interval) * (interval - mean_interval) for interval in intervals) / (n-1)
     
     return variance
+
+def print_tuplelist(tuple_list, vars, cols):
+    # Extract the tuples with a value of 1
+    selected_tuples = [t for t in tuple_list if vars[t].X == 1]
+
+    # Sort the selected tuples
+    sorted_selected_tuples = sorted(selected_tuples)
+
+    # Print the sorted selected tuples
+    debug(len(sorted_selected_tuples))
+    debug("Selected tuples with value of 1 (sorted):")
+    for t in sorted_selected_tuples:
+        debug(t)
+
+    for col in cols:
+        if col == 0: debug('HOME COUNTS')
+        elif col == 1: debug('AWAY COUNTS')
+        elif col == 2: debug('WEEK COUNTS')
+        else: raise ValueError('col value not 0, 1 or 2')
+
+        # Count the occurrences of each value in the last column
+        last_column_values = [t[col] for t in sorted_selected_tuples]
+        value_counts = Counter(last_column_values)
+
+        # Print the count of tuples for each value in the last column
+        print("\nCount of tuples for each value in the last column:")
+        for value in sorted(value_counts):
+            debug(f"Value {value}: {value_counts[value]} tuples")
