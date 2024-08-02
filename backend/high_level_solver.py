@@ -40,6 +40,7 @@ class HighLevelSolver():
         self._add_cost()
 
     def _prune_matchups(self, matchups: List[Tuple[int, int, int]]):
+        
         all_games = []
 
         non_bye_weeks = [1, 2, 3, 4, 8, 13, 15, 16, 17, 18]
@@ -204,4 +205,4 @@ class HighLevelSolver():
 
     def solve(self):
         self.m.optimize()
-        # print_tupledict_3('ALL MATCHUPS', self.games)
+        print_tupledict_3('ALL MATCHUPS', self.games)
