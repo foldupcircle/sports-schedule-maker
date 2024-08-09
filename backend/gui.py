@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtCore import QThread, pyqtSignal
+from PyQt6.QtGui import QPixmap
 
 from main import main
 from utils.debug import debug
@@ -38,28 +39,64 @@ class GenerateScheduleWorker(QThread):
 
 
 class ToggleFrame(QFrame):
-    def __init__(self, text, week, parent=None):
+    def __init__(self, matchups, week, parent=None):
         super().__init__(parent)
         self.setFrameShape(QFrame.Shape.NoFrame)
-        self.text_label = QLabel(str(text))
-        self.text_label.setWordWrap(True)
-        self.text_label.hide()
         self.week = week
 
+        # Toggle button to show/hide the matchups
         self.toggle_button = QPushButton(f"Week {self.week}")
         self.toggle_button.setCheckable(True)
         self.toggle_button.clicked.connect(self.toggle_text)
 
+        # Layout for the toggle button and the matchups
         layout = QVBoxLayout()
         layout.addWidget(self.toggle_button)
-        layout.addWidget(self.text_label)
-        self.setLayout(layout)
 
+        # Card layout to hold all matchups for this week
+        self.card_layout = QVBoxLayout()
+
+        # Adding each matchup as a horizontal layout within the card
+        for team1, team2 in matchups:
+            matchup_layout = QHBoxLayout()
+
+            # Team 1 Logo and Name
+            team1_logo = QLabel()
+            # Assuming 'team1_logo_path' is the path to the logo image
+            team1_logo.setPixmap(QPixmap("team1_logo_path"))
+            team1_name = QLabel("Team 1 Name")  # Replace with actual team name
+
+            # Team 2 Logo and Name
+            team2_logo = QLabel()
+            # Assuming 'team2_logo_path' is the path to the logo image
+            team2_logo.setPixmap(QPixmap("team2_logo_path"))
+            team2_name = QLabel("Team 2 Name")  # Replace with actual team name
+
+            # Adding widgets to the horizontal layout
+            matchup_layout.addWidget(team1_logo)
+            matchup_layout.addWidget(team1_name)
+            matchup_layout.addWidget(QLabel("@"))  # "@" symbol
+            matchup_layout.addWidget(team2_name)
+            matchup_layout.addWidget(team2_logo)
+
+            # Add the horizontal layout to the card layout
+            self.card_layout.addLayout(matchup_layout)
+
+        # Initially hide the card layout
+        self.card_layout.setSpacing(10)
+        self.card_layout.setContentsMargins(10, 10, 10, 10)
+        self.card_widget = QWidget()
+        self.card_widget.setLayout(self.card_layout)
+        self.card_widget.hide()
+
+        layout.addWidget(self.card_widget)
+        self.setLayout(layout)
+    
     def toggle_text(self):
         if self.toggle_button.isChecked():
-            self.text_label.show()
+            self.card_widget.show()
         else:
-            self.text_label.hide()
+            self.card_widget.hide()
 
 
 class MainWindow(QWidget):
