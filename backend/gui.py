@@ -58,10 +58,8 @@ class ToggleFrame(QFrame):
     def toggle_text(self):
         if self.toggle_button.isChecked():
             self.text_label.show()
-            # self.toggle_button.setText(f"Week {self.week}")
         else:
             self.text_label.hide()
-            # self.toggle_button.setText(f"Week {self.week}")
 
 
 class MainWindow(QWidget):
@@ -69,6 +67,7 @@ class MainWindow(QWidget):
         super().__init__()
 
         self.init_ui()
+        self.generated_matchups_once = False
 
     def init_ui(self):
         self.setWindowTitle("NFL Matchups and Schedules")
@@ -90,17 +89,17 @@ class MainWindow(QWidget):
         top_layout.addStretch()  # Push the button to the right
         top_layout.addWidget(self.generate_button)
 
+        # Solving... Text
         self.loading_label = QLabel("")  # Placeholder for "Loading..." text
         top_layout.addWidget(self.loading_label)
         self.main_layout.addLayout(top_layout)
 
+        # Scroll Area
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
 
         self.scroll_content = QWidget()
         self.scroll_layout = QVBoxLayout(self.scroll_content)
-        self.scroll_layout.setSpacing(5)  # Adjust space between toggles
-        self.scroll_layout.setContentsMargins(5, 5, 5, 5)  # Adjust margins
         self.scroll_content.setLayout(self.scroll_layout)
 
         self.scroll_area.setWidget(self.scroll_content)
@@ -113,8 +112,6 @@ class MainWindow(QWidget):
         self.no_matchups_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.scroll_layout.addWidget(self.no_matchups_label)
 
-        # self.scroll_layout.addStretch(1)
-
     def generate_schedule(self):
         self.generate_button.setEnabled(False)  # Disable button to prevent multiple clicks
 
@@ -124,30 +121,40 @@ class MainWindow(QWidget):
         self.worker.start()
 
     def on_generation_complete(self, matchups: Dict):
-        # Remove the "No Matchups Generated" label
-        if self.no_matchups_label is not None and self.no_matchups_label.isVisible():
-            self.no_matchups_label.hide()
-
         # Clear the existing widgets in the scroll_layout
         for i in reversed(range(self.scroll_layout.count())):
             widget = self.scroll_layout.itemAt(i).widget()
-            if widget == self.no_matchups_label: continue
             if widget is not None:
                 widget.deleteLater()  # Delete the widget
+            else:
+                self.scroll_layout.removeItem(self.scroll_layout.itemAt(i))  # Remove stretch item
 
         # Add the toggles with the generated matchups
         for i, matchup in matchups.items():
             toggle_frame = ToggleFrame(matchup, week=i+1)
             self.scroll_layout.addWidget(toggle_frame)
-
+        
+        self.scroll_layout.setSpacing(0)  # Adjust space between toggles
+        self.scroll_layout.setContentsMargins(5, 5, 5, 5)  # Adjust margins
         # Re-add the stretch to ensure the toggles are top-aligned
         self.scroll_layout.addStretch(1)
+        
+        # Remove the "No Matchups Generated" label
+        try:
+            if self.no_matchups_label is not None and self.no_matchups_label.isVisible():
+                self.no_matchups_label.hide()
+                self.generated_matchups_once = True
+        except:
+            pass
 
         self.generate_button.setEnabled(True)  # Re-enable the button
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())
+    try:
+        app = QApplication(sys.argv)
+        window = MainWindow()
+        window.show()
+        sys.exit(app.exec())
+    except:
+        sys.exit(1)
