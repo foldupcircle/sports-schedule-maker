@@ -1,5 +1,6 @@
 import sys
 import time
+from typing import Dict
 from PyQt6.QtWidgets import (
     QApplication,
     QWidget,
@@ -13,24 +14,36 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtCore import QThread, pyqtSignal
 
+from main import main
+from utils.debug import debug
+
+test_dict = {
+    0: [(1, 31), (2, 30)],
+    1: [(3, 8)],
+    2: [(9, 18), (14, 17)],
+    3: [(30, 28)],
+    4: [(24, 21)]
+}
 
 class GenerateScheduleWorker(QThread):
     update_status = pyqtSignal(str)
-    finished = pyqtSignal()
+    finished = pyqtSignal(dict)
 
     def run(self):
         # Simulate a long-running task
-        self.update_status.emit("Loading...")
-        time.sleep(3)
+        self.update_status.emit("Solving...")
+        # results = main()
+        results = test_dict
+        # time.sleep(3)
         self.update_status.emit("")
-        self.finished.emit()
+        self.finished.emit(results)
 
 
 class ToggleFrame(QFrame):
     def __init__(self, text, week, parent=None):
         super().__init__(parent)
         self.setFrameShape(QFrame.Shape.NoFrame)
-        self.text_label = QLabel(text)
+        self.text_label = QLabel(str(text))
         self.text_label.setWordWrap(True)
         self.text_label.hide()
         self.week = week
@@ -47,10 +60,10 @@ class ToggleFrame(QFrame):
     def toggle_text(self):
         if self.toggle_button.isChecked():
             self.text_label.show()
-            self.toggle_button.setText(f"Week {self.week}")
+            # self.toggle_button.setText(f"Week {self.week}")
         else:
             self.text_label.hide()
-            self.toggle_button.setText(f"Week {self.week}")
+            # self.toggle_button.setText(f"Week {self.week}")
 
 
 class MainWindow(QWidget):
@@ -95,18 +108,23 @@ class MainWindow(QWidget):
         self.main_layout.addWidget(self.scroll_area)
         self.setLayout(self.main_layout)
 
-        # Add toggles with hidden text
-        texts = [
-            "This is the first text to be shown when the first toggle is clicked.",
-            "This is the second text to be shown when the second toggle is clicked.",
-            "This is the third text to be shown when the third toggle is clicked.",
-            # Add more text entries as needed
-        ]
+        # Label for no matchups
+        self.no_matchups_label = QLabel("No Matchups Generated")
+        self.no_matchups_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.scroll_layout.addWidget(self.no_matchups_label)
 
-        for i in range(len(texts)):
-            text = texts[i]
-            toggle_frame = ToggleFrame(text, week=i+1)
-            self.scroll_layout.addWidget(toggle_frame)
+        # # Add toggles with hidden text
+        # texts = [
+        #     "This is the first text to be shown when the first toggle is clicked.",
+        #     "This is the second text to be shown when the second toggle is clicked.",
+        #     "This is the third text to be shown when the third toggle is clicked.",
+        #     # Add more text entries as needed
+        # ]
+
+        # for i in range(len(texts)):
+        #     text = texts[i]
+        #     toggle_frame = ToggleFrame(text, week=i+1)
+        #     self.scroll_layout.addWidget(toggle_frame)
 
         # Add stretch to ensure alignment at the top
         self.scroll_layout.addStretch(1)
@@ -119,7 +137,17 @@ class MainWindow(QWidget):
         self.worker.finished.connect(self.on_generation_complete)
         self.worker.start()
 
-    def on_generation_complete(self):
+    def on_generation_complete(self, matchups: Dict):
+        # Remove the "No Matchups Generated" label
+        self.no_matchups_label.hide()
+
+        # Add the toggles with the generated matchups
+        for i, matchup in matchups.items():
+            debug(matchup)
+            debug(i)
+            toggle_frame = ToggleFrame(matchup, week=i+1)
+            self.scroll_layout.addWidget(toggle_frame)
+
         self.generate_button.setEnabled(True)  # Re-enable the button
 
 
@@ -127,4 +155,9 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
-    sys.exit(app.exec())
+    
+    try:
+        sys.exit(app.exec())
+    except KeyboardInterrupt:
+        print("Application interrupted by user, exiting.")
+        sys.exit(0)

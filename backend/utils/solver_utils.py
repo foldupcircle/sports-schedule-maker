@@ -3,6 +3,7 @@ from typing import List, Tuple
 from collections import Counter
 import gurobipy as gp
 from utils.debug import debug
+from pprint import pprint
 from data.leagues import NFL_TEAMS_DICT
 from data.solver_help import indices_to_nfl_teams
 
@@ -190,3 +191,21 @@ def print_tuplelist(tuple_list, vars, cols):
         print("\nCount of tuples for each value in the last column:")
         for value in sorted(value_counts):
             debug(f"Value {value}: {value_counts[value]} tuples")
+
+def get_formatted_matchups(all_games, solved_games):
+    # Create an empty dictionary to store the results
+    result_dict = {}
+
+    # Iterate through all the games
+    for game in all_games:
+        # Check if the variable associated with this game has a value of 1
+        if solved_games[game].X == 1:
+            # game is a tuple (tuple[0], tuple[1], tuple[2])
+            # Key is tuple[2], value is (tuple[0], tuple[1])
+            if game[2] not in result_dict:
+                result_dict[game[2]] = []
+            result_dict[game[2]].append((game[0], game[1]))
+
+    # If you want the values to be a list of tuples
+    pprint(result_dict)
+    return result_dict

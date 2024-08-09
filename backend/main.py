@@ -8,6 +8,7 @@ from generate_matchups import determine_matchups
 from utils.debug import debug
 from old_solver import OldSolver
 from high_level_solver import HighLevelSolver
+from utils.solver_utils import get_formatted_matchups
 
 def main():
     year = int(date.today().strftime('%Y'))
@@ -23,10 +24,11 @@ def main():
     # Explore gurobi, or maybe use casadi :eyes:
     solver = HighLevelSolver(matchups, early_bye_teams_2023)
     solver.solve()
+    results = get_formatted_matchups(solver.all_games, solver.games)
     # debug(x_sol)
     # debug(np.round(M_sol))
-
-
+    
+    return results
     # response = constraint_chain.invoke({'teams': json_teams, 'constraints': nfl_prompt})
     # print(response)
     # print(len(response.required_matchups))
