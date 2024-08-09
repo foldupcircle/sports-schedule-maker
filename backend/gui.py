@@ -1,5 +1,4 @@
 import sys
-import time
 from typing import Dict
 from PyQt6.QtWidgets import (
     QApplication,
@@ -32,9 +31,8 @@ class GenerateScheduleWorker(QThread):
     def run(self):
         # Simulate a long-running task
         self.update_status.emit("Solving...")
-        # results = main()
         results = test_dict
-        # time.sleep(3)
+        # results = main()
         self.update_status.emit("")
         self.finished.emit(results)
 
@@ -101,6 +99,8 @@ class MainWindow(QWidget):
 
         self.scroll_content = QWidget()
         self.scroll_layout = QVBoxLayout(self.scroll_content)
+        self.scroll_layout.setSpacing(5)  # Adjust space between toggles
+        self.scroll_layout.setContentsMargins(5, 5, 5, 5)  # Adjust margins
         self.scroll_content.setLayout(self.scroll_layout)
 
         self.scroll_area.setWidget(self.scroll_content)
@@ -113,21 +113,7 @@ class MainWindow(QWidget):
         self.no_matchups_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.scroll_layout.addWidget(self.no_matchups_label)
 
-        # # Add toggles with hidden text
-        # texts = [
-        #     "This is the first text to be shown when the first toggle is clicked.",
-        #     "This is the second text to be shown when the second toggle is clicked.",
-        #     "This is the third text to be shown when the third toggle is clicked.",
-        #     # Add more text entries as needed
-        # ]
-
-        # for i in range(len(texts)):
-        #     text = texts[i]
-        #     toggle_frame = ToggleFrame(text, week=i+1)
-        #     self.scroll_layout.addWidget(toggle_frame)
-
-        # Add stretch to ensure alignment at the top
-        self.scroll_layout.addStretch(1)
+        # self.scroll_layout.addStretch(1)
 
     def generate_schedule(self):
         self.generate_button.setEnabled(False)  # Disable button to prevent multiple clicks
@@ -139,14 +125,23 @@ class MainWindow(QWidget):
 
     def on_generation_complete(self, matchups: Dict):
         # Remove the "No Matchups Generated" label
-        self.no_matchups_label.hide()
+        if self.no_matchups_label is not None and self.no_matchups_label.isVisible():
+            self.no_matchups_label.hide()
+
+        # Clear the existing widgets in the scroll_layout
+        for i in reversed(range(self.scroll_layout.count())):
+            widget = self.scroll_layout.itemAt(i).widget()
+            if widget == self.no_matchups_label: continue
+            if widget is not None:
+                widget.deleteLater()  # Delete the widget
 
         # Add the toggles with the generated matchups
         for i, matchup in matchups.items():
-            debug(matchup)
-            debug(i)
             toggle_frame = ToggleFrame(matchup, week=i+1)
             self.scroll_layout.addWidget(toggle_frame)
+
+        # Re-add the stretch to ensure the toggles are top-aligned
+        self.scroll_layout.addStretch(1)
 
         self.generate_button.setEnabled(True)  # Re-enable the button
 
@@ -155,9 +150,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
-    
-    try:
-        sys.exit(app.exec())
-    except KeyboardInterrupt:
-        print("Application interrupted by user, exiting.")
-        sys.exit(0)
+    sys.exit(app.exec())
