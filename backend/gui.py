@@ -1,4 +1,5 @@
 import sys
+import time
 from PyQt6.QtWidgets import (
     QApplication,
     QWidget,
@@ -7,8 +8,22 @@ from PyQt6.QtWidgets import (
     QLabel,
     QScrollArea,
     QFrame,
+    QHBoxLayout,
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import QThread, pyqtSignal
+
+
+class GenerateScheduleWorker(QThread):
+    update_status = pyqtSignal(str)
+    finished = pyqtSignal()
+
+    def run(self):
+        # Simulate a long-running task
+        self.update_status.emit("Loading...")
+        time.sleep(3)
+        self.update_status.emit("")
+        self.finished.emit()
 
 
 class ToggleFrame(QFrame):
@@ -50,11 +65,23 @@ class MainWindow(QWidget):
 
         self.main_layout = QVBoxLayout()
 
+        top_layout = QHBoxLayout()
+
         # Title
         title_label = QLabel("NFL Schedule by Week")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("font-size: 18pt; font-weight: bold;")
-        self.main_layout.addWidget(title_label)
+        top_layout.addWidget(title_label)
+
+        # "Generate Schedule" button
+        self.generate_button = QPushButton("Generate Schedule")
+        self.generate_button.clicked.connect(self.generate_schedule)
+        top_layout.addStretch()  # Push the button to the right
+        top_layout.addWidget(self.generate_button)
+
+        self.loading_label = QLabel("")  # Placeholder for "Loading..." text
+        top_layout.addWidget(self.loading_label)
+        self.main_layout.addLayout(top_layout)
 
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
@@ -83,6 +110,17 @@ class MainWindow(QWidget):
 
         # Add stretch to ensure alignment at the top
         self.scroll_layout.addStretch(1)
+
+    def generate_schedule(self):
+        self.generate_button.setEnabled(False)  # Disable button to prevent multiple clicks
+
+        self.worker = GenerateScheduleWorker()
+        self.worker.update_status.connect(self.loading_label.setText)
+        self.worker.finished.connect(self.on_generation_complete)
+        self.worker.start()
+
+    def on_generation_complete(self):
+        self.generate_button.setEnabled(True)  # Re-enable the button
 
 
 if __name__ == '__main__':
