@@ -16,6 +16,8 @@ from PyQt6.QtGui import QPixmap
 
 from main import main
 from utils.debug import debug
+from data.nfl_teams_abb import nfl_teams_abb
+from data.solver_help import indices_to_nfl_teams
 
 test_dict = {
     0: [(1, 31), (2, 30)],
@@ -57,27 +59,30 @@ class ToggleFrame(QFrame):
         self.card_layout = QVBoxLayout()
 
         # Adding each matchup as a horizontal layout within the card
-        for team1, team2 in matchups:
+        for home, away in matchups:
             matchup_layout = QHBoxLayout()
 
             # Team 1 Logo and Name
-            team1_logo = QLabel()
+            away_logo = QLabel()
+            away_logo.setScaledContents(True)
             # Assuming 'team1_logo_path' is the path to the logo image
-            team1_logo.setPixmap(QPixmap("team1_logo_path"))
-            team1_name = QLabel("Team 1 Name")  # Replace with actual team name
+            away_full_name = indices_to_nfl_teams[away]
+            away_logo.setPixmap(QPixmap(f'team_logos/{nfl_teams_abb[away_full_name]}.png'))
+            away_name = QLabel(away_full_name)  # Replace with actual team name
 
             # Team 2 Logo and Name
-            team2_logo = QLabel()
-            # Assuming 'team2_logo_path' is the path to the logo image
-            team2_logo.setPixmap(QPixmap("team2_logo_path"))
-            team2_name = QLabel("Team 2 Name")  # Replace with actual team name
+            home_logo = QLabel()
+            home_logo.setScaledContents(True)
+            home_full_name = indices_to_nfl_teams[home]
+            home_logo.setPixmap(QPixmap(f'team_logos/{nfl_teams_abb[home_full_name]}.png'))
+            home_name = QLabel(home_full_name)  # Replace with actual team name
 
             # Adding widgets to the horizontal layout
-            matchup_layout.addWidget(team1_logo)
-            matchup_layout.addWidget(team1_name)
+            matchup_layout.addWidget(away_logo)
+            matchup_layout.addWidget(away_name)
             matchup_layout.addWidget(QLabel("@"))  # "@" symbol
-            matchup_layout.addWidget(team2_name)
-            matchup_layout.addWidget(team2_logo)
+            matchup_layout.addWidget(home_name)
+            matchup_layout.addWidget(home_logo)
 
             # Add the horizontal layout to the card layout
             self.card_layout.addLayout(matchup_layout)
