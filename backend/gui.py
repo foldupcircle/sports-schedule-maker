@@ -41,10 +41,11 @@ class GenerateScheduleWorker(QThread):
 
 
 class ToggleFrame(QFrame):
-    def __init__(self, matchups, week, parent=None):
+    def __init__(self, main_window, matchups, week, parent=None):
         super().__init__(parent)
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.week = week
+        self.main_window = main_window
 
         # Toggle button to show/hide the matchups
         self.toggle_button = QPushButton(f"Week {self.week}")
@@ -61,20 +62,24 @@ class ToggleFrame(QFrame):
         # Adding each matchup as a horizontal layout within the card
         for home, away in matchups:
             matchup_layout = QHBoxLayout()
+            max_size = min(self.main_window.width() * 0.05, self.main_window.height() * 0.05)
 
             # Team 1 Logo and Name
             away_logo = QLabel()
             away_logo.setScaledContents(True)
-            # Assuming 'team1_logo_path' is the path to the logo image
             away_full_name = indices_to_nfl_teams[away]
-            away_logo.setPixmap(QPixmap(f'team_logos/{nfl_teams_abb[away_full_name]}.png'))
+            away_pixmap = QPixmap(f'team_logos/{nfl_teams_abb[away_full_name]}.png').scaled(50)
+            debug(away_pixmap.width())
+            debug(away_pixmap.height())
+            away_logo.setPixmap(away_pixmap)#.scaled(away_pixmap.width() * 0.05, away_pixmap.height() * 0.05))
             away_name = QLabel(away_full_name)  # Replace with actual team name
 
             # Team 2 Logo and Name
             home_logo = QLabel()
             home_logo.setScaledContents(True)
             home_full_name = indices_to_nfl_teams[home]
-            home_logo.setPixmap(QPixmap(f'team_logos/{nfl_teams_abb[home_full_name]}.png'))
+            home_pixmap = QPixmap(f'team_logos/{nfl_teams_abb[home_full_name]}.png')
+            home_logo.setPixmap(home_pixmap.scaled(home_pixmap.width() * 0.05, home_pixmap.height() * 0.05, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
             home_name = QLabel(home_full_name)  # Replace with actual team name
 
             # Adding widgets to the horizontal layout
@@ -103,11 +108,20 @@ class ToggleFrame(QFrame):
         else:
             self.card_widget.hide()
 
+    # def resizeEvent(self, event):
+    #     super().resizeEvent(event)
+    #     self.resize_logos()
+
+    # def resize_logos(self):
+    #     # Example: Scale logos to 10% of the toggle frame's height
+    #     new_size = self.height() * 0.1
+
+    #     for logo in self.away_logos + self.home_logos:
+    #         logo.setPixmap(logo.pixmap().scaled(new_size, new_size, Qt.AspectRatioMode.KeepAspectRatio))
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-
         self.init_ui()
         self.generated_matchups_once = False
 
@@ -173,7 +187,7 @@ class MainWindow(QWidget):
 
         # Add the toggles with the generated matchups
         for i, matchup in matchups.items():
-            toggle_frame = ToggleFrame(matchup, week=i+1)
+            toggle_frame = ToggleFrame(self, matchup, week=i+1)
             self.scroll_layout.addWidget(toggle_frame)
         
         self.scroll_layout.setSpacing(0)  # Adjust space between toggles
