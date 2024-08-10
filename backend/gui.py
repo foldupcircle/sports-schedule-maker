@@ -34,8 +34,8 @@ class GenerateScheduleWorker(QThread):
     def run(self):
         # Simulate a long-running task
         self.update_status.emit("Solving...")
-        results = test_dict
-        # results = main()
+        # results = test_dict
+        results = main()
         self.update_status.emit("")
         self.finished.emit(results)
 
@@ -61,25 +61,26 @@ class ToggleFrame(QFrame):
 
         # Adding each matchup as a horizontal layout within the card
         for home, away in matchups:
+            if away == -1: continue
+
             matchup_layout = QHBoxLayout()
-            max_size = min(self.main_window.width() * 0.05, self.main_window.height() * 0.05)
 
             # Team 1 Logo and Name
             away_logo = QLabel()
+            away_logo.setFixedSize(50, 50)
             away_logo.setScaledContents(True)
             away_full_name = indices_to_nfl_teams[away]
-            away_pixmap = QPixmap(f'team_logos/{nfl_teams_abb[away_full_name]}.png').scaled(50)
-            debug(away_pixmap.width())
-            debug(away_pixmap.height())
-            away_logo.setPixmap(away_pixmap)#.scaled(away_pixmap.width() * 0.05, away_pixmap.height() * 0.05))
+            away_pixmap = QPixmap(f'team_logos/{nfl_teams_abb[away_full_name]}.png')
+            away_logo.setPixmap(away_pixmap)
             away_name = QLabel(away_full_name)  # Replace with actual team name
 
             # Team 2 Logo and Name
             home_logo = QLabel()
+            home_logo.setFixedSize(50, 50)
             home_logo.setScaledContents(True)
             home_full_name = indices_to_nfl_teams[home]
             home_pixmap = QPixmap(f'team_logos/{nfl_teams_abb[home_full_name]}.png')
-            home_logo.setPixmap(home_pixmap.scaled(home_pixmap.width() * 0.05, home_pixmap.height() * 0.05, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+            home_logo.setPixmap(home_pixmap)
             home_name = QLabel(home_full_name)  # Replace with actual team name
 
             # Adding widgets to the horizontal layout
@@ -108,16 +109,6 @@ class ToggleFrame(QFrame):
         else:
             self.card_widget.hide()
 
-    # def resizeEvent(self, event):
-    #     super().resizeEvent(event)
-    #     self.resize_logos()
-
-    # def resize_logos(self):
-    #     # Example: Scale logos to 10% of the toggle frame's height
-    #     new_size = self.height() * 0.1
-
-    #     for logo in self.away_logos + self.home_logos:
-    #         logo.setPixmap(logo.pixmap().scaled(new_size, new_size, Qt.AspectRatioMode.KeepAspectRatio))
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -127,7 +118,7 @@ class MainWindow(QWidget):
 
     def init_ui(self):
         self.setWindowTitle("NFL Matchups and Schedules")
-        self.setGeometry(100, 100, 800, 600)  # Increase the size of the window
+        self.setGeometry(100, 100, 600, 600)  # Increase the size of the window
 
         self.main_layout = QVBoxLayout()
 
