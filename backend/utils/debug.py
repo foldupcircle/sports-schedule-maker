@@ -33,7 +33,16 @@ MATCHUPS_COLORS = {name: light_orange_1 for name in ['determine_matchups']}
 MAIN_UTIL_COLORS = {name: yellow for name in ['convert_teams_to_dict', 'choose_league', 'check_matchup']}
 OLD_SOLVER_COLORS = {f'OldSolver.{name}': purple for name in ['__init__', 'solve', '_sort_matrix', '_add_constraints', '_add_cost', 
                                                       '_add_prelim_matchup_constraints']}
-SOLVER_UTIL_COLORS = {name: green for name in ['print_tupledict', 'create_per_team_matchups', 'process_per_team_matchups', 'print_tuplelist', 'print_tupledict_3']}
+SOLVER_UTIL_COLORS = {name: green for name in ['print_tupledict', 
+                                               'create_per_team_matchups', 
+                                               'process_per_team_matchups', 
+                                               'print_tuplelist', 
+                                               'print_tupledict_3', 
+                                               'get_formatted_matchups', 
+                                               'haversine', 
+                                               'get_team_home_stadium', 
+                                               'create_matchup_tuplelist', 
+                                               'calculate_interval_variance']}
 HIGH_LEVEL_SOLVER_COLORS = {f'HighLevelSolver.{name}': blue for name in ['__init__', 
                                                                          '_add_cost', 
                                                                          '_add_constraints', 

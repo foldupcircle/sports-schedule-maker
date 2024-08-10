@@ -46,6 +46,9 @@ pandas==2.2.2
 pluggy==1.5.0
 pydantic==2.7.2
 pydantic_core==2.18.3
+PyQt6==6.7.1
+PyQt6-Qt6==6.7.2
+PyQt6_sip==13.8.0
 pytest==8.2.2
 python-dateutil==2.9.0.post0
 python-snappy==0.7.1
