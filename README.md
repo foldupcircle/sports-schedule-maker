@@ -11,28 +11,34 @@ The goal of this project is to create optimal schedules for sports leagues based
 
 ## Usage Guide
 
-### Installation
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/your-organization/schedule-maker.git
-    cd schedule-maker/backend
-    ```
-
-2. Install the required packages:
-    ```sh
-    pip install -r requirements.txt
-    ```
+### Clone
+Clone the repository:
+```sh
+git clone https://github.com/your-organization/schedule-maker.git
+cd schedule-maker/backend
+```
 
 ### Acquire Gurobi License
 To run the solver you're going to need a Gurobi Optimization License. This is free for academics users, paid otherwise.
 
-1. Navigate to [this link](https://support.gurobi.com/hc/en-us/articles/12684663118993-How-do-I-obtain-a-Gurobi-license) to acquire your license.
+1. Navigate to the [Gurobi User Portal](https://portal.gurobi.com/iam/login/?target=https%3A%2F%2Fportal.gurobi.com%2F) and make an account.
 
-2. 
+2. Navigate to the Licenses Tab on the Left Panel and click (+) Request. Choose a license that is appropriate for you. I chose the "Named-User Academic" one.
+
+3. Once your license has been created, go to the Licenses/Licenses Tab and click the TV-Download Button on the right side of your license to see installation instructions. Follow this to finish getting Gurobi on your machine.
+
+### Installation
+Install the required packages:
+```sh
+pip install -r requirements.txt
+```
+
 ### Using the GUI
 Run the GUI application from within the backend folder:
 ```sh
 python -m gui
 ```
 
-This will execute the main solver and generate the schedule based on the provided constraints and team information.
+Click "Generate Schedule" to run the optimization. This will execute the main solver and generate the schedule based on the provided constraints and team information (currently set internally to NFL requirements). It will take 3-4 minutes to finish.
+
+And that's it!
