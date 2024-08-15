@@ -1,4 +1,4 @@
-# Schedule Maker
+# Sports Schedule Maker
 
 ## Overview
 The goal of this project is to create optimal schedules for sports leagues based on team info, playing locations, matchup restrictions, fan attendance, travel time, and other constraints. 
