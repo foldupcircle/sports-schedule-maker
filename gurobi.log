@@ -5,3 +5,11 @@ Set parameter Username
 Set parameter LogFile to value "gurobi.log"
 Using license file /Users/sricharanguddanti/gurobi.lic
 Academic license - for non-commercial use only - expires 2025-06-28
+
+Gurobi 12.0.3 (win64, gurobi_cl) logging started Tue Jul 29 19:31:24 2025
+
+Set parameter Username
+Set parameter LicenseID to value 2691588
+Set parameter LogFile to value "gurobi.log"
+Using license file C:\Users\srich\gurobi.lic
+Academic license - for non-commercial use only - expires 2026-07-30

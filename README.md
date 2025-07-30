@@ -14,8 +14,8 @@ The goal of this project is to create optimal schedules for sports leagues based
 ### Clone
 Clone the repository:
 ```sh
-git clone https://github.com/your-organization/schedule-maker.git
-cd schedule-maker/backend
+git clone https://github.com/foldupcircle/sports-schedule-maker.git
+cd backend
 ```
 
 ### Acquire Gurobi License
