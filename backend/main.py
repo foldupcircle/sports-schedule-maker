@@ -11,7 +11,8 @@ from high_level_solver import HighLevelSolver
 from utils.solver_utils import get_formatted_matchups
 
 def main():
-    year = int(date.today().strftime('%Y'))
+    # year = int(date.today().strftime('%Y'))
+    year = 2024
     matchups = determine_matchups('NFL', year)
     early_bye_teams_2023 = [
         'Cleveland Browns',

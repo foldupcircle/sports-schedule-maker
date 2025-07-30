@@ -61,6 +61,7 @@ def determine_matchups(league: str, year: int):
 
         # Intraconference Games
         intra_conf_teams = [t for t in teams.values() if t.division == team.intra_conference]
+        debug(intra_conf_teams)
         home_away_check = 0
         for opp in intra_conf_teams:
             game_did_happen = check_matchup(intra_conf_schedule, team.team_name, opp.team_name)
