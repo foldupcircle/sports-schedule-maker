@@ -1,0 +1,16 @@
+you're given:
+- n ranked teams (let their rank be their id)
+- a set of matches, which each contain two team identifiers (`team1` and `team2`, the teams that are playing) and a duration
+	- These identifiers can either be an explicit rank or the winner or loser of another game.
+	- A match can also have a condition that determines whether it will be run. This condition will be entirely boolean logic based on the bracket state, ie, "matches[2].winner == matches[4].loser". If a match has this condition, it will also have a default winner team who wins if the condition to run is not met.
+- the number of fields $m$ on which games can be run at the same time
+- the time range for each field during which it is allowed to have games
+you must compute a schedule for the tournament, which states for each match:
+- what time it starts
+- which field it's on
+- a third team ID who are assigned to help referee that game (they must not be in a game and reffing at the same time)
+additional constraints which should be options that the user can turn on and off:
+- teams should not play in two back-to-back games.
+- teams should not referee a game if their next game is one of the two teams in that game
+objective (optional, only if it's easy to do, and doesn't need to actually be optimal if that's easier):
+- minimize dependencies across fields.
